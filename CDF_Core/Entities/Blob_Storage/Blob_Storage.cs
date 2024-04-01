@@ -13,5 +13,6 @@ namespace CDF_Core.Entities.Blob_Storage
         public string Version { get; set; }
         public string CreatedDate { get; set; }
         public string ModifiedDate { get; set; }
+       // public string BlobUrlWithSas { get; set;}
     }
 }

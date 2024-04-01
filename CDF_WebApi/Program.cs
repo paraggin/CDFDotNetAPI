@@ -14,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using CDF_Services.Mapping;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using CDF_Services.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new AuthorizeFilter());
 });
+
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+builder.Logging.AddConsole();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
