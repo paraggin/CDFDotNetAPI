@@ -10,6 +10,10 @@ namespace CDF_Services.IServices.IBlobStorageService
 {
     public interface IBlobStorageService
     {
-        Task<IActionResult> ListBlobs(string container_name, int pageSize, int pageNumber);
+        
+        Task<IActionResult> getBLobSAS(string BlobName);
+
+        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string startdate, string enddate, string period, string reportingUnit, string filename);
+
     }
 }

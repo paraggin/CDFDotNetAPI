@@ -29,3 +29,22 @@ https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=202
 
 https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A02%3A02Z&sr=b&sp=r&sig=jD%2F5vfl%2Bm8Op%2BLjDI8R0Pu%2Blffomkn1Tq6IMxPDcx5A%3D
 "period" = 'Sun Apr 14 2024 00:00:00 GMT 0530 (India Standard Time)'
+
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A13%3A20Z&sr=b&sp=r&sig=wI%2BLiZNg292tquBN4jzyzPWC2HYYa7zj%2BMvlV0RM8ac%3D
+
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A20%3A00Z&sr=b&sp=r&sig=VrM%2F1i02Qds23kidKIdWDDEMUZXQcRpjiJImnUQ%2BNMI%3D
+
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A29%3A33Z&sr=b&sp=r&sig=9SGJm%2FTobt1%2FL4fXyvEamIXTSuDHR5QKVvqoTJrpxeo%3D
+
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A33%3A39Z&sr=b&sp=r&sig=ekDVrurdpzgGL5wxW6jLoWY0W1h2LvceEzOdJrxLJm0%3D
+"period" = '2024-03-10'
+"period" = '2024-03-10'
+"period" = '2024-03-30'
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A37%3A55Z&sr=b&sp=r&sig=qmaWz8EdJ0z0che%2FFpsr1ZVbhhyz2kCZma3RU6HFroY%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A47%3A39Z&sr=b&sp=r&sig=7QgkVtF10qfO4J9Vpwa3rU0gUEk%2BZ66S3ARaADRAxjU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A01%3A01Z&sr=b&sp=r&sig=jUPpjHOnxZjyZe1nVgJ3pJOj3UuoBnRW8t4M5wL4ZzU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A01%3A40Z&sr=b&sp=r&sig=9O8K8hADF0b1M7Ds6q7geCgXx8BtwXgqw1TxOaXI1qM%3D
+
+"reportingunit" = 'sales'
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A27%3A37Z&sr=b&sp=r&sig=dQAFEMpIl1hQJtp0iQNNZOtdgRHp7hfVTbZ6AsnOXPA%3D
+

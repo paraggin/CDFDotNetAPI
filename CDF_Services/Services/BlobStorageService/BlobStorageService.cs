@@ -1,13 +1,15 @@
 ﻿using AutoMapper;
 using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using CDF_Core.Entities.Blob_Storage;
-using CDF_Core.Entities.PNP_Accounts;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System.Data.Entity;
 
 
 namespace CDF_Services.Services.BlobStorageService
@@ -18,34 +20,146 @@ namespace CDF_Services.Services.BlobStorageService
         private readonly IUnitOfWork<Blob_Storage> _IUnitOfWork;
         private readonly ApplicationDBContext _dbContext;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        private const string _connectionString = "DefaultEndpointsProtocol=https;AccountName=blobpoc02;AccountKey=a8NjedNF5CBZ76krN/HDW5QXdDR8lapH1Pqh8flb1imX5MrsN3ZVv44BciaB9XTQK2mhtTHanvGK+AStqO7PFg==;EndpointSuffix=core.windows.net";
-
-        public BlobStorageService(IGenericRepository<Blob_Storage> iGenericRepository, IUnitOfWork<Blob_Storage> iUnitOfWork, ApplicationDBContext dbContext, IMapper mapper)
+        public BlobStorageService( IConfiguration configuration,IGenericRepository<Blob_Storage> iGenericRepository, IUnitOfWork<Blob_Storage> iUnitOfWork, ApplicationDBContext dbContext, IMapper mapper)
         {
             _IGenericRepository = iGenericRepository;
             _IUnitOfWork = iUnitOfWork;
             _dbContext = dbContext;
             _mapper = mapper;
+            _configuration = configuration;
+        }
+        public async Task<IActionResult> getBLobSAS(string BlobName)
+        {
+
+            string AccountName = _configuration["AzureBlobStorage:AccountName"];
+            string AccountKey = _configuration["AzureBlobStorage:AccountKey"];
+            string ContainerName = _configuration["AzureBlobStorage:ContainerName"];
+            string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString,
+                ContainerName);
+
+                BlobClient blobClient = blobContainerClient.GetBlobClient(BlobName);
+
+                Azure.Storage.Sas.BlobSasBuilder blobSasBuilder = new Azure.Storage.Sas.BlobSasBuilder()
+                {
+                    BlobContainerName = ContainerName,
+                    BlobName = BlobName,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                };
+                blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
+                var sasToken = blobSasBuilder.ToSasQueryParameters(new
+                StorageSharedKeyCredential(AccountName, AccountKey)).ToString();
+                var sasURL = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+                writer.WriteLine(sasURL);
+                return new JsonResult(new { blobSASUrl = sasURL });
+
+            }
+
         }
 
-        public async Task<IActionResult> ListBlobs(string container_name, int pageSize, int pageNumber)
-        {
-            BlobServiceClient blobServiceClient = new BlobServiceClient(_connectionString);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(container_name);
 
+
+        public async Task<IActionResult> FilterBlobs(int pageSize , int pageNumber , string startdate, string enddate, string period , string reportingUnit, string filename )
+        {
+            string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
+
+            var serviceClient = new BlobServiceClient(connectionString);
+
+            string containerName = _configuration["AzureBlobStorage:ContainerName"];
+            BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
             int totalCount = 0;
             await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
             {
                 totalCount++;
             }
-            int skip = (pageNumber - 1) * pageSize;
+            string query = "";
 
+
+            if (!string.IsNullOrEmpty(startdate))
+            {
+                query += @$"""startdate"" >= '{startdate}'";
+            }
+
+            if (!string.IsNullOrEmpty(enddate))
+            {
+                if (!string.IsNullOrEmpty(query))
+                    query += " AND ";
+
+                query += @$"""enddate"" <= '{enddate}'";
+            }
+
+            if (!string.IsNullOrEmpty(period))
+            {
+                if (!string.IsNullOrEmpty(query))
+                    query += " AND ";
+
+                query += @$"""period"" = '{period}'";
+            }
+
+            if (!string.IsNullOrEmpty(reportingUnit))
+            {
+                if (!string.IsNullOrEmpty(query))
+                    query += " AND ";
+
+                query += @$"""reportingunit"" = '{reportingUnit}'";
+            }
+
+
+
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                writer.WriteLine(query);
+            }
             string continuationToken = null;
-            List<BlobItem> blobs = new List<BlobItem>();
+
+            int skip = (int)((pageNumber - 1) * pageSize);
+
+            List<Object> blobTags = new List<Object>();
+
+            if (!string.IsNullOrEmpty(query))
+            {
+
+                await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query)
+                    .AsPages(continuationToken, pageSize))
+                {
+                    if (skip >= page.Values.Count)
+                    {
+                        skip -= page.Values.Count;
+                        continuationToken = page.ContinuationToken;
+                        continue;
+                    }
+
+                    var items = page.Values.Skip(skip);
+
+                    foreach (TaggedBlobItem blobItem in items)
+                    {
+
+                        BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                        GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                        blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+
+                    }
+
+                    if (blobTags.Count >= pageSize)
+                    {
+                        break;
+                    }
+
+                    skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+
+                    continuationToken = page.ContinuationToken;
+                }
+                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+
+            }
+
 
             await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: null)
-                .AsPages(continuationToken, pageSize))
+              .AsPages(continuationToken, pageSize))
             {
                 if (skip >= page.Values.Count)
                 {
@@ -58,87 +172,28 @@ namespace CDF_Services.Services.BlobStorageService
 
                 foreach (BlobItem blobItem in items)
                 {
-                    Console.WriteLine($"Blob Name: {blobItem.Name}");
-                    blobs.Add(blobItem);
+                    BlobClient blobClient = containerClient.GetBlobClient(blobItem.Name);
+
+                    GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                    blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Tags });
+
                 }
-                if (blobs.Count >= pageSize)
+                if (blobTags.Count >= pageSize)
                 {
                     break;
                 }
-                skip = Math.Max(0, pageSize - blobs.Count);
+                skip = Math.Max(0, (int)pageSize - blobTags.Count);
 
                 continuationToken = page.ContinuationToken;
             }
 
-            return new JsonResult(new { TotalCount = totalCount, Blobs = blobs });
+            return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+
+
         }
 
-        /*  public async Task<IActionResult> ListBlobs(string container_name, int pageSize, int pageNumber)
-          {
-              BlobServiceClient blobServiceClient = new BlobServiceClient(_connectionString);
-              BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(container_name);
 
-              string continuationToken = null;
-              List<BlobItem> blobs = new List<BlobItem>();
-
-              await foreach (Page<BlobItem> page in
-                  containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: null).AsPages(continuationToken, pageSize))
-              {
-
-                  Console.WriteLine($"Page: {page}");
-                  foreach (BlobItem blobItem in page.Values)
-                  {
-
-                      Console.WriteLine($"Blob Name: {blobItem.Name}");
-                      blobs.Add(blobItem);
-                  }
-                  break;
-                  continuationToken = page.ContinuationToken;
-              }
-
-              return new JsonResult(blobs);
-          }*/
-
-        /*   public async Task<IActionResult> ListBlobs(string container_name, int pageSize, int pageNumber)
-           {
-               var blobServiceClient = new BlobServiceClient(_connectionString);
-               var containerClient = blobServiceClient.GetBlobContainerClient(container_name);
-
-               var blobs = new List<Blob_Storage>();
-               var blobsToSkip = (pageNumber - 1) * pageSize;
-               var blobsSkipped = 0;
-
-               await foreach (var blobItem in containerClient.GetBlobsAsync())
-               {
-                   if (blobsSkipped < blobsToSkip)
-                   {
-                       blobsSkipped++;
-                       continue;
-                   }
-
-                   var blobClient = containerClient.GetBlobClient(blobItem.Name);
-                   var blobProperties = await blobClient.GetPropertiesAsync();
-
-                   var metadata = new Blob_Storage
-                   {
-                       Name = blobItem.Name,
-                       Version = blobProperties.Value.Metadata.ContainsKey("Version") ? blobProperties.Value.Metadata["Version"] : null,
-                       CreatedDate = blobProperties.Value.Metadata.ContainsKey("CreatedDate") ? blobProperties.Value.Metadata["CreatedDate"] : null,
-                       ModifiedDate = blobProperties.Value.Metadata.ContainsKey("ModifiedDate") ? blobProperties.Value.Metadata["ModifiedDate"] : null
-                   };
-
-                   blobs.Add(metadata);
-
-                   if (blobs.Count >= pageSize)
-                   {
-                       break;
-                   }
-               }
-
-               return new JsonResult(blobs);
-           }
-   */
-    }
+        }
 
 
 }
