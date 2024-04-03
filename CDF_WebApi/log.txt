@@ -1,0 +1,45 @@
+"createdDate" = '0.0.3' | "CreatedDate" = '0.0.3' | "modifiedDate" = '0.0.3' | "ModifiedDate" = '0.0.3' | "version" = '0.0.3' | "Version" = '0.0.3'
+"Version" = '0.0.3' | "CreatedDate" = '0.0.3' | "ModifiedDate" = '0.0.3' | "createdDate" = '0.0.3' | "modifiedDate" = '0.0.3' | "version" = '0.0.3'
+"createdDate" = '0.0.3' | "CreatedDate" = '0.0.3' | "modifiedDate" = '0.0.3' | "ModifiedDate" = '0.0.3' | "version" = '0.0.3' | "Version" = '0.0.3'
+"createdDate" = '0.0.3' | "CreatedDate" = '0.0.3' | "modifiedDate" = '0.0.3' | "ModifiedDate" = '0.0.3' | "version" = '0.0.3' | "Version" = '0.0.3'
+"createdDate" = '0.0.3' | "CreatedDate" = '0.0.3' | "modifiedDate" = '0.0.3' | "ModifiedDate" = '0.0.3' | "version" = '0.0.3' | "Version" = '0.0.3'
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T04%3A44%3A47Z&sr=b&sp=r&sig=ZFtUsLbZ64YTw2iYdKBr80BaXquCEFXSy6eR2UbteB4%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T04%3A49%3A41Z&sr=b&sp=r&sig=vD%2B5qUMGVDTAjFGsi0bWFALyp9YAX3aYCgzTjyMXKLw%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.04_Asset_Management_Fees.pdf?sv=2023-11-03&se=2024-04-03T04%3A50%3A30Z&sr=b&sp=r&sig=zF6RSnxAlNJpnEbYHoJMLeOVMzk4I24t1XWerp2IUko%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T05%3A04%3A58Z&sr=b&sp=r&sig=MtC3LIRj%2B9mfEsmRjlf0UcS%2B0I515xUzlz9vufWpHbQ%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T05%3A10%3A08Z&sr=b&sp=r&sig=hyeN9xlimXtOXVI8ZP2O3u29TGHCOffQq1dEVoOtsHY%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A08%3A14Z&sr=b&sp=r&sig=uITgc3csI70fZZzffBb2prnRLTDMlV%2BT6hNA6gBwjiU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A10%3A24Z&sr=b&sp=r&sig=rQpUTyRsJUvlTYpHcPxpRYwyjBtsf%2BYy%2B6GQTz%2Beydk%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.04_Asset_Management_Fees.pdf?sv=2023-11-03&se=2024-04-03T06%3A10%3A31Z&sr=b&sp=r&sig=aE42phwpFOxBuYqriBrg2iNb6OT5IbjVKTmGc8ZwYNE%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.09_All_Other_Income.pdf?sv=2023-11-03&se=2024-04-03T06%3A10%3A45Z&sr=b&sp=r&sig=nv9oa5kUAVjjoV%2BIu3U6FdDtIuZRlc8hk886LWh3cS4%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A13%3A57Z&sr=b&sp=r&sig=OcQtL4YbhZ%2Fbtb4VKmJpPO9823vLW2RQ%2FAw0j0FFlPg%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.04_Asset_Management_Fees.pdf?sv=2023-11-03&se=2024-04-03T06%3A14%3A08Z&sr=b&sp=r&sig=5aBXLzWCanKfKInz4Su31Z2ylW8p6MftkdCfZ2thMkw%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A14%3A14Z&sr=b&sp=r&sig=I5CkgYvMpR0pX4riE3J3YZ%2BBhXBNIbOF73%2B7qT2EW4s%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A18%3A10Z&sr=b&sp=r&sig=w1QwPClxXJgq%2FCz%2FIf75scLr5dzKNKBaFnpdMJVGCYk%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A18%3A26Z&sr=b&sp=r&sig=yoPmtyar8esDfIDiK9GbskIVUfJkgAXh2EHwmWNVszQ%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.10_Fair_Value.pdf?sv=2023-11-03&se=2024-04-03T06%3A18%3A58Z&sr=b&sp=r&sig=sU4ecJCk7R%2B%2Fa30TQsHIYOkQxNP6H7qBqkbYpWo2IQI%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A19%3A10Z&sr=b&sp=r&sig=YNKRT0rxZA%2FCWRRlaYoTQj665jMfSJ7unbERdfU0UN4%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A20%3A41Z&sr=b&sp=r&sig=xadivOqYzqo%2BalDuMcMjRDiPWAXKg%2B1Kt4Ru3XTqtTQ%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A25%3A17Z&sr=b&sp=r&sig=vdkYpcGLenwN2GKUEgcJuooNXX3%2FXtdqIclzFMYHBvo%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A26%3A17Z&sr=b&sp=r&sig=WVPRqzVVBrGykYCFe%2FH0lEDr9E%2BEBUK%2Br3lyGg4ExXU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-03T06%3A26%3A20Z&sr=b&sp=r&sig=u8MiZuWl2fMo63h1zSDG5RlKKKGdGzMfsjVOUG1RsUQ%3D
+https://blobpoc02.blob.core.windows.net/container-poc/example.docx?sv=2023-11-03&se=2024-04-03T06%3A26%3A26Z&sr=b&sp=r&sig=CFm3GBAyZzQnWmBA2%2BD88eknuxqAhhExosxsuddREEA%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-03T06%3A26%3A33Z&sr=b&sp=r&sig=Rhwux9E007ALMl%2FMeB%2Bug1MP34dozlM3d0zy%2FTfjHuo%3D
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-03T06%3A26%3A46Z&sr=b&sp=r&sig=n%2BvVD82fUKHp56kwlQ3%2BD0%2Fg2veeoTB13YP3QAJYMcE%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A26%3A53Z&sr=b&sp=r&sig=WTf99FuEkGg%2Fs7NSjqHnUEJHDYYXNm0GqBHRWhmzqW0%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1010C_Brazil_Chapters_Val.xlsx?sv=2023-11-03&se=2024-04-03T06%3A27%3A02Z&sr=b&sp=r&sig=y98ocZQAaGh35UsYOHgwP%2Bb7e9Ciga%2BFYGlTfvcAK7Q%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A32%3A58Z&sr=b&sp=r&sig=vZnoa1RUPsXN%2F91XtC7JB2cPjBiKufAVd8Fshox36Og%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1010C_Brazil_Chapters_Val.xlsx?sv=2023-11-03&se=2024-04-03T06%3A33%3A02Z&sr=b&sp=r&sig=UJ73Ute70uvKsPrlKBLuVq9Hpu2muPnWlpP07UO7qhI%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.04_Asset_Management_Fees.pdf?sv=2023-11-03&se=2024-04-03T06%3A33%3A05Z&sr=b&sp=r&sig=SHbkI5LPaS42lOecbnH3uHke4gixPJTXO2s8XXL3Nbg%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.05_PNPPolicy.pdf?sv=2023-11-03&se=2024-04-03T06%3A33%3A07Z&sr=b&sp=r&sig=WTbztnoXYyjinYK%2FF4QiKWqsC4dVqMXa14n69%2BvqSg8%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.09_All_Other_Income.pdf?sv=2023-11-03&se=2024-04-03T06%3A33%3A12Z&sr=b&sp=r&sig=8DokrmAB%2Fye69Tn8HuFVWssUhvx0r7fNgKLps3YYYkc%3D
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.10_Fair_Value.pdf?sv=2023-11-03&se=2024-04-03T06%3A33%3A14Z&sr=b&sp=r&sig=iF9FIPhFnxFqnWA9uTHIQSVOsR95IZWjH0obFtjctxw%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A37%3A58Z&sr=b&sp=r&sig=uZ8BeU%2FZj5noQaTKsl%2Bywc7VMQow8nufKlngtZ2XK%2FQ%3D
+https://blobpoc02.blob.core.windows.net/container-poc/example.docx?sv=2023-11-03&se=2024-04-03T06%3A38%3A17Z&sr=b&sp=r&sig=UMwjeFKAL%2B2t6K7NEExidfDkeGFbSx0Oa4X0L%2Fbx3eg%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A53%3A46Z&sr=b&sp=r&sig=ltEbIz9EZ0kBkPQRIVmO96LTXnxpvpruZgKdHobSaiY%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A55%3A47Z&sr=b&sp=r&sig=NUOm7HHylNJItdijfyDSAEBLqVmn1dtNxGLNp1Ld5hY%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A57%3A48Z&sr=b&sp=r&sig=9vii5DiVoCY8OC2EWEp3%2B6oY0Igouj8t%2Ff6lNOeolGU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T06%3A59%3A33Z&sr=b&sp=r&sig=OVt5nNt9JImoqpJpZOBQAj2SA29RSEA0yFwMq64n%2FH0%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T07%3A01%3A34Z&sr=b&sp=r&sig=PmUx%2FgGnOMnvDoK5bQny4ldhAwp7weJnFXJi4CO%2FWKM%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T07%3A03%3A35Z&sr=b&sp=r&sig=VZCpzomQFUKMqafqr8x898yhU19giTiQVy96JHYsa3g%3D
+https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T07%3A05%3A36Z&sr=b&sp=r&sig=XNpZX5Pbn5daB3zWf4PO%2BIir2XXx4T9EqqMxWia84bU%3D
