@@ -162,60 +162,105 @@ namespace CDF_WebApi.Controllers.BolbStorage
             return new JsonResult(new { TotalCount = totalCount, Blobs = blobs });
         }
 
-       [HttpGet]
+        [HttpGet]
         [Route("ListBlobsv2")]
-        public async Task<IActionResult> FilterBlobs( int pageSize, int pageNumber,string? searchText)
+        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? startdate = null, string? enddate = null, string? period = null, string? reportingUnit = null, string? filename = null)
         {
             string connectionString = "DefaultEndpointsProtocol=https;AccountName=blobpoc02;AccountKey=a8NjedNF5CBZ76krN/HDW5QXdDR8lapH1Pqh8flb1imX5MrsN3ZVv44BciaB9XTQK2mhtTHanvGK+AStqO7PFg==;EndpointSuffix=core.windows.net";
 
             var serviceClient = new BlobServiceClient(connectionString);
 
-            string containerName = "container-poc";
+            string containerName = "container-poc";// ;
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
             int totalCount = 0;
             await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
             {
                 totalCount++;
             }
-            List<TaggedBlobItem> filteredBlobs = new List<TaggedBlobItem>();
-            List<string> filteredBlobsName = new List<string>();
-            //createdDate
-            //modifiedDate
-            //Version
+            string query = ""; 
+           
+          
+                if (!string.IsNullOrEmpty(startdate))
+                {
+                    query += @$"""startdate"" >= '{startdate}'";
+                }
 
-            /*   List<string> searchConditions = new List<string>();
-               searchConditions.Add($"\"Version\" = '{searchText}'");          
-               string query = $"\"Version\" = '{searchText}' | \"CreatedDate\" = '{searchText}' | \"ModifiedDate\" = '{searchText}'  | \"createdDate\" = '{searchText}' | \"modifiedDate\" = '{searchText}' | \"version\" = '{searchText}'";
-   */
+                if (!string.IsNullOrEmpty(enddate))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
 
-            List<(string field, string value)> searchConditions = new List<(string field, string value)>();
-            searchConditions.Add(("Version", searchText));
-            searchConditions.Add(("CreatedDate", searchText));
-            searchConditions.Add(("ModifiedDate", searchText));
-            searchConditions.Add(("createdDate", searchText));
-            searchConditions.Add(("modifiedDate", searchText));
-            searchConditions.Add(("version", searchText));
+                    query += @$"""enddate"" <= '{enddate}'";
+                }
 
-            searchConditions.Sort((x, y) => x.field.CompareTo(y.field));
+                if (!string.IsNullOrEmpty(period))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
 
-            List<string> queryConditions = new List<string>();
-            foreach (var condition in searchConditions)
-            {
-                queryConditions.Add($"\"{condition.field}\" = '{condition.value}'");
-            }
+                    query += @$"""period"" = '{period}'";
+                }
 
-            string query = string.Join(" | ", queryConditions);
+                if (!string.IsNullOrEmpty(reportingUnit))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
+
+                    query += @$"""reportingunit"" = '{reportingUnit}'";
+                }
+           
+
+
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             { 
                 writer.WriteLine(query);
             }
-
-                List<TaggedBlobItem> blobs = new List<TaggedBlobItem>();
-
             string continuationToken = null;
-            int skip = (pageNumber - 1) * pageSize;
-            await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query)
-                .AsPages(continuationToken, pageSize))
+
+            int skip = (int)((pageNumber - 1) * pageSize);
+
+            List<Object> blobTags = new List<Object>();
+
+            if (!string.IsNullOrEmpty(query))
+            {
+
+                await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query)
+                    .AsPages(continuationToken, pageSize))
+                {
+                    if (skip >= page.Values.Count)
+                    {
+                        skip -= page.Values.Count;
+                        continuationToken = page.ContinuationToken;
+                        continue;
+                    }
+
+                    var items = page.Values.Skip(skip);
+
+                    foreach (TaggedBlobItem blobItem in items)
+                    {
+
+                        BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                        GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                        blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+
+                    }
+
+                    if (blobTags.Count >= pageSize)
+                    {
+                        break;
+                    }
+
+                    skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+
+                    continuationToken = page.ContinuationToken;
+                }
+                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+
+            }
+
+
+            await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: null)
+              .AsPages(continuationToken, pageSize))
             {
                 if (skip >= page.Values.Count)
                 {
@@ -226,117 +271,26 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
                 var items = page.Values.Skip(skip);
 
-                foreach (TaggedBlobItem blobItem in items)
+                foreach (BlobItem blobItem in items)
                 {
+                    BlobClient blobClient = containerClient.GetBlobClient(blobItem.Name);
 
-                    BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
-
-                    // Get specific details of the blob
-                    BlobProperties blobProperties = await blobClient.GetPropertiesAsync();
-
-                    await blobClient.GetTagsAsync();
-                    blobs.Add(blobItem);
+                    GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                    blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Tags });
+                   
                 }
-                if (blobs.Count >= pageSize)
+                if (blobTags.Count >= pageSize)
                 {
                     break;
                 }
-                skip = Math.Max(0, pageSize - blobs.Count);
+                skip = Math.Max(0,(int) pageSize - blobTags.Count);
 
                 continuationToken = page.ContinuationToken;
             }
 
-            return new JsonResult(new { TotalCount = totalCount, Blobs = blobs });
-            /*   if (!string.IsNullOrEmpty(searchText))
-               {
-                   searchConditions.Add($"\"Version\" = '{searchText}'");
-                   // searchConditions.Add($"\"CreatedDate\" = '{searchText}'");
-                   //searchConditions.Add($"\"modifiedDate\" = '{searchText}'");
+            return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
 
 
-                   string query = searchConditions.Count > 0 ? string.Join(" | ", searchConditions) : null;
-
-                   List<TaggedBlobItem> blobs = new List<TaggedBlobItem>();
-
-                   string continuationToken = null;
-                   int skip = (pageNumber - 1) * pageSize;
-                   await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query)
-                       .AsPages(continuationToken, pageSize))
-                   {
-                       if (skip >= page.Values.Count)
-                       {
-                           skip -= page.Values.Count;
-                           continuationToken = page.ContinuationToken;
-                           continue;
-                       }
-
-                       var items = page.Values.Skip(skip);
-
-                       foreach (TaggedBlobItem blobItem in items)
-                       {
-
-                           BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
-
-                           // Get specific details of the blob
-                           BlobProperties blobProperties = await blobClient.GetPropertiesAsync();
-
-                           await blobClient.GetTagsAsync();
-                           blobs.Add(blobItem);
-                       }
-                       if (blobs.Count >= pageSize)
-                       {
-                           break;
-                       }
-                       skip = Math.Max(0, pageSize - blobs.Count);
-
-                       continuationToken = page.ContinuationToken;
-                   }
-
-                   return new JsonResult(new { TotalCount = totalCount, Blobs = blobs });
-
-
-               }
-               else
-               {
-
-                   BlobServiceClient blobServiceClient = new BlobServiceClient(_connectionString);
-
-
-                   int skip = (pageNumber - 1) * pageSize;
-
-                   string continuationToken = null;
-                   List<BlobItem> blobs = new List<BlobItem>();
-
-                   await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: null)
-                       .AsPages(continuationToken, pageSize))
-                   {
-                       if (skip >= page.Values.Count)
-                       {
-                           skip -= page.Values.Count;
-                           continuationToken = page.ContinuationToken;
-                           continue;
-                       }
-
-                       var items = page.Values.Skip(skip);
-
-                       foreach (BlobItem blobItem in items)
-                       {
-                           Console.WriteLine($"Blob Name: {blobItem.Name}");
-                           blobs.Add(blobItem);
-                       }
-                       if (blobs.Count >= pageSize)
-                       {
-                           break;
-                       }
-                       skip = Math.Max(0, pageSize - blobs.Count);
-
-                       continuationToken = page.ContinuationToken;
-                   }
-
-                   return new JsonResult(new { TotalCount = totalCount, Blobs = blobs });
-               }
-
-   */
         }
 
 
