@@ -15,6 +15,7 @@ using CDF_Services.Mapping;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using CDF_Services.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -126,6 +127,10 @@ builder.Services.AddCors(option => option.AddPolicy("CorsPolicy", build =>
 }));
 
 builder.Services.AddHttpClient();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = long.MaxValue;
+});
 
 
 var app = builder.Build();

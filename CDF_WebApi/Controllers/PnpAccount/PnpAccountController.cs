@@ -20,10 +20,10 @@ namespace CDF_WebApi.Controllers.PnpAccount
             _IConstants = IConstants;
         }   
         [HttpGet]
-        [Route("getAccountByplicy")]
-        public AccountSearchResult GetAccountByplicy(string policy)
+        [Route("getAccountByPolicy")]
+        public AccountSearchResult GetAccountByPolicy(string policy)
         {
-            return _PnpAccountServices.GetAccountByplicy(policy);
+            return _PnpAccountServices.GetAccountByPolicy(policy);
         }
     }
 }

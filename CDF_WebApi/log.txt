@@ -1,50 +1,169 @@
-@container = 'container-poc' 
-@container = 'container-poc' 
-@container = 'container-poc'
 
- AND metadata['reportingunit'] = 'sales'
+The specified container does not exist.
+RequestId:ed236de0-201e-008f-325c-86c555000000
+Time:2024-04-04T06:54:23.9828329Z
+Status: 404 (The specified container does not exist.)
+ErrorCode: ContainerNotFound
 
-"period" = 'sales'
-"reportingunit" = 'sales'
-1 = 1
-"reportingunit" = "reportingunit"
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>ContainerNotFound</Code><Message>The specified container does not exist.
+RequestId:ed236de0-201e-008f-325c-86c555000000
+Time:2024-04-04T06:54:23.9828329Z</Message></Error>
 
-"reportingunit" = 'sales'
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id: ed236de0-201e-008f-325c-86c555000000
+x-ms-client-request-id: d277de50-fdf2-4ada-bc7a-367e968b18e7
+x-ms-version: 2023-11-03
+x-ms-error-code: ContainerNotFound
+Date: Thu, 04 Apr 2024 06:54:23 GMT
+Content-Length: 225
+Content-Type: application/xml
+The specified container does not exist.
+RequestId:697293ac-301e-00e1-215d-86907a000000
+Time:2024-04-04T06:56:17.7256057Z
+Status: 404 (The specified container does not exist.)
+ErrorCode: ContainerNotFound
 
-"reportingunit" = 'sales'
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>ContainerNotFound</Code><Message>The specified container does not exist.
+RequestId:697293ac-301e-00e1-215d-86907a000000
+Time:2024-04-04T06:56:17.7256057Z</Message></Error>
+
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id: 697293ac-301e-00e1-215d-86907a000000
+x-ms-client-request-id: edada7ae-90ac-4759-8152-59fd412d4070
+x-ms-version: 2023-11-03
+x-ms-error-code: ContainerNotFound
+Date: Thu, 04 Apr 2024 06:56:16 GMT
+Content-Length: 225
+Content-Type: application/xml
+
+
+The specified container does not exist.
+RequestId:0db0227e-501e-003c-3d5f-8665f8000000
+Time:2024-04-04T07:14:23.7696378Z
+Status: 404 (The specified container does not exist.)
+ErrorCode: ContainerNotFound
+
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>ContainerNotFound</Code><Message>The specified container does not exist.
+RequestId:0db0227e-501e-003c-3d5f-8665f8000000
+Time:2024-04-04T07:14:23.7696378Z</Message></Error>
+
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id: 0db0227e-501e-003c-3d5f-8665f8000000
+x-ms-client-request-id: 1b37092c-ae63-4565-8253-80aaac86888b
+x-ms-version: 2023-11-03
+x-ms-error-code: ContainerNotFound
+Date: Thu, 04 Apr 2024 07:14:22 GMT
+Content-Length: 225
+Content-Type: application/xml
+
+The specified container does not exist.
+RequestId:95f8c54d-201e-009f-3760-86003d000000
+Time:2024-04-04T07:22:33.3141800Z
+Status: 404 (The specified container does not exist.)
+ErrorCode: ContainerNotFound
+
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>ContainerNotFound</Code><Message>The specified container does not exist.
+RequestId:95f8c54d-201e-009f-3760-86003d000000
+Time:2024-04-04T07:22:33.3141800Z</Message></Error>
+
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id: 95f8c54d-201e-009f-3760-86003d000000
+x-ms-client-request-id: bdcbe340-6882-449d-97e5-0986d91e9243
+x-ms-version: 2023-11-03
+x-ms-error-code: ContainerNotFound
+Date: Thu, 04 Apr 2024 07:22:33 GMT
+Content-Length: 225
+Content-Type: application/xml
+
+
+https://blobpoc02.blob.core.windows.net/container-poc/example%20%286%29.docx
+
+https://blobpoc02.blob.core.windows.net/container-poc/dummy%20%281%29.pdf
 
 
 
-"reportingunit" = 'sales'
+https://blobpoc02.blob.core.windows.net/container-poc/dummy.pdf
 
 
 
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T11%3A34%3A53Z&sr=b&sp=r&sig=OEB6D4IwVlaeL4nZENv4PGfT8co2SovG1T7l0rJQQ1M%3D
-"startdate" >= '1' AND "enddate" <= '2' AND "period" = '4' AND "reportingunit" = '5'
-"startdate" >= 'null' AND "enddate" <= 'null' AND "period" = 'null'
-"startdate" >= 'null' AND "enddate" <= 'null' AND "period" = 'null'
-"startdate" >= '1' AND "enddate" <= '2' AND "period" = '4' AND "reportingunit" = '5'
 
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A02%3A02Z&sr=b&sp=r&sig=jD%2F5vfl%2Bm8Op%2BLjDI8R0Pu%2Blffomkn1Tq6IMxPDcx5A%3D
-"period" = 'Sun Apr 14 2024 00:00:00 GMT 0530 (India Standard Time)'
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A13%3A20Z&sr=b&sp=r&sig=wI%2BLiZNg292tquBN4jzyzPWC2HYYa7zj%2BMvlV0RM8ac%3D
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A20%3A00Z&sr=b&sp=r&sig=VrM%2F1i02Qds23kidKIdWDDEMUZXQcRpjiJImnUQ%2BNMI%3D
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A29%3A33Z&sr=b&sp=r&sig=9SGJm%2FTobt1%2FL4fXyvEamIXTSuDHR5QKVvqoTJrpxeo%3D
 
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A33%3A39Z&sr=b&sp=r&sig=ekDVrurdpzgGL5wxW6jLoWY0W1h2LvceEzOdJrxLJm0%3D
-"period" = '2024-03-10'
-"period" = '2024-03-10'
-"period" = '2024-03-30'
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A37%3A55Z&sr=b&sp=r&sig=qmaWz8EdJ0z0che%2FFpsr1ZVbhhyz2kCZma3RU6HFroY%3D
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T12%3A47%3A39Z&sr=b&sp=r&sig=7QgkVtF10qfO4J9Vpwa3rU0gUEk%2BZ66S3ARaADRAxjU%3D
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A01%3A01Z&sr=b&sp=r&sig=jUPpjHOnxZjyZe1nVgJ3pJOj3UuoBnRW8t4M5wL4ZzU%3D
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A01%3A40Z&sr=b&sp=r&sig=9O8K8hADF0b1M7Ds6q7geCgXx8BtwXgqw1TxOaXI1qM%3D
 
-"reportingunit" = 'sales'
-https://blobpoc02.blob.core.windows.net/container-poc/1001C_ABC_AOCI.xlsx?sv=2023-11-03&se=2024-04-03T13%3A27%3A37Z&sr=b&sp=r&sig=dQAFEMpIl1hQJtp0iQNNZOtdgRHp7hfVTbZ6AsnOXPA%3D
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Name = '00000Test.docx'
+"Name" LIKE '00000Test.docx%'
+
+
+
+
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+"period" >= '2024-03-01' AND "period" <= '2024-03-31' AND "reportingunit" = '100C1'
+"period" >= '2024-03-01' AND "period" <= '2024-03-31' AND "reportingunit" = '100C3'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T10%3A46%3A03Z&sr=b&sp=r&sig=J8VlsVem8L3217VHAKX%2Fn1uZKDgq%2Fx6%2FUjj75JADODM%3D
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T10%3A46%3A29Z&sr=b&sp=r&sig=jAkv4YYeuNKGoztgLN%2BfPI9frrpKeQjhYYXYGT6FTQs%3D
+"period" >= '2024-03-01' AND "period" <= '2024-03-31' AND "reportingunit" = '100C2'
+"period" >= '2024-04-01' AND "period" <= '2024-04-30' AND "reportingunit" = '100C2'
+"period" >= '2024-03-01' AND "period" <= '2024-03-31' AND "reportingunit" = '100C2'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T10%3A49%3A31Z&sr=b&sp=r&sig=amMDLOuydwP9KFOBbCeuqM5d%2F2qtQ6t5g%2FfkMRB729w%3D
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T10%3A52%3A48Z&sr=b&sp=r&sig=oWj0%2FqZoxqDWNjDdwbGjpkoiDzCMhCxADzjkkSh7o%2Bk%3D
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T10%3A55%3A25Z&sr=b&sp=r&sig=neWx9xU23ywjSl45Do7NUDpHJ%2BKLThytezBKCOYW4NY%3D
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T10%3A55%3A54Z&sr=b&sp=r&sig=IXjnAQLUx2d9HYNo6%2B%2FQT9uGDxSXo13R9w6huFZw4Ow%3D
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T11%3A09%3A55Z&sr=b&sp=r&sig=hGZNSvI11%2FVhyIvKTx830a1bb5o8B5RYCHz9PlPX8AU%3D
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T11%3A09%3A55Z&sr=b&sp=r&sig=hGZNSvI11%2FVhyIvKTx830a1bb5o8B5RYCHz9PlPX8AU%3D
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T11%3A10%3A56Z&sr=b&sp=r&sig=el%2FN%2FB8Sx5vtv%2BuKBHr7LWKUFiUZVr6ZsDcdv1FdisI%3D
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T11%3A11%3A22Z&sr=b&sp=r&sig=2a03Bg3o3nBfBHzRVXG5JvCdGrW0W98HHiI9AOU2iVY%3D
+"period" >= '2024-05-01' AND "period" <= '2024-05-31'
+https://blobpoc02.blob.core.windows.net/container-poc/dummy%20%281%29.pdf?sv=2023-11-03&se=2024-04-04T11%3A12%3A09Z&sr=b&sp=r&sig=F5ikYEMc8e7Vw6a0j7KDP9m7pMyzVTkN76rRDjTE060%3D
+"period" >= '2024-05-01' AND "period" <= '2024-05-31'
+https://blobpoc02.blob.core.windows.net/container-poc/dummy%20%281%29.pdf?sv=2023-11-03&se=2024-04-04T11%3A21%3A59Z&sr=b&sp=r&sig=9FNml4iF1oaA0K8oYiH3IkFGDiNuIgUdmDNrcKLCpeQ%3D
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T11%3A22%3A09Z&sr=b&sp=r&sig=BJqc6oSttXc1iAXmJBcXiKF6LW6TOX9NgSZ8quc9R%2BI%3D
+"period" >= '2024-04-01' AND "period" <= '2024-04-30'
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T11%3A22%3A19Z&sr=b&sp=r&sig=YfbH6JcKl%2BT8SJKQSfsnUqO68jSd5fl078vXzlozOso%3D
+"period" >= '2024-11-01' AND "period" <= '2024-11-30'
+"period" >= '2024-03-01' AND "period" <= '2024-03-31'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T11%3A22%3A33Z&sr=b&sp=r&sig=jkIpkg7rcFwc6hGID0NaJJk2YPMTje4UqgwtI%2FfP%2BHw%3D
+"period" >= '2024-03-01' AND "period" <= '2024-03-31' AND "reportingunit" = '100C2'
+https://blobpoc02.blob.core.windows.net/container-poc/4.01.11_Extraordinary_Items.pdf?sv=2023-11-03&se=2024-04-04T11%3A22%3A49Z&sr=b&sp=r&sig=99ky0SbhhGt3vu9upzxj%2Fnp%2BJn0ZFHf164ILYBQ0eKE%3D
+https://blobpoc02.blob.core.windows.net/container-poc/Test.xlsx?sv=2023-11-03&se=2024-04-04T11%3A24%3A56Z&sr=b&sp=r&sig=pSaIq6QIIxc00i0snA5oAPMrf8677%2BPERpBKAz%2FT8WE%3D

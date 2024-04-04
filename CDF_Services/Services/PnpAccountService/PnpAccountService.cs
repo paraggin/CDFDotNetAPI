@@ -26,7 +26,7 @@ namespace CDF_Services.Services.PnpAccountService
             _mapper = mapper;
         }
 
-        public AccountSearchResult GetAccountByplicy(string policy)
+        public AccountSearchResult GetAccountByPolicy(string policy)
         {
             AccountSearchResult searchResult = new AccountSearchResult();
 

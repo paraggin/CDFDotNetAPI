@@ -9,6 +9,6 @@ namespace CDF_Services.IServices.IPnpAccountServices
 {
     public interface IPnpAccountServices
     {
-        AccountSearchResult GetAccountByplicy(string policy);
+        AccountSearchResult GetAccountByPolicy(string policy);
     }
 }

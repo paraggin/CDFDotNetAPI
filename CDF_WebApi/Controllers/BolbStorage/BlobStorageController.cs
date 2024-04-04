@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,8 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _BlobStorageService = BlobStorageService;
             _configuration = configuration;
             _IConstants = IConstants;
-           
+
+
         }       
 
 
@@ -51,12 +53,58 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         [HttpGet]
         [Route("ListBlobsv2")]
-        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? startdate = null, string? enddate = null, string? period = null, string? reportingUnit = null, string? filename = null)
+        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1,  string? period = null, string? reportingUnit = null, string? filename = null,string? containerName= "")
         {
-            return await _BlobStorageService.FilterBlobs((int)pageSize,(int) pageNumber, startdate, enddate, period, reportingUnit, filename);
+            return await _BlobStorageService.FilterBlobs((int)pageSize,(int) pageNumber, period, reportingUnit, filename, containerName);
 
         }
+
+        [HttpPost]
+        [Route("uploadBlob")]
+        public async Task<IActionResult> uploadBlob(IFormFile file, string? containerName = "container-poc")
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    if (file.Length > 0)
+                    {
+                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileType = Path.GetExtension(fileName);
+
+                        BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
+
+                        if (!await blobContainerClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                        }
+
+                        BlobClient blobClient = blobContainerClient.GetBlobClient(fileName);
+
+                        using Stream stream = file.OpenReadStream();
+                        blobClient.Upload(stream);
+                        await blobClient.SetAccessTierAsync(AccessTier.Hot);
+
+                        var fileUrl = blobClient.Uri.AbsoluteUri;
+                        writer.Write(fileUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200 });
+        }
+
 
 
     }
 }
+
+    
+

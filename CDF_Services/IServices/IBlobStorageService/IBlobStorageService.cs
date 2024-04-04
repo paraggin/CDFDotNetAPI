@@ -1,10 +1,4 @@
-﻿using CDF_Core.Entities.PNP_Accounts;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace CDF_Services.IServices.IBlobStorageService
 {
@@ -13,7 +7,8 @@ namespace CDF_Services.IServices.IBlobStorageService
         
         Task<IActionResult> getBLobSAS(string BlobName);
 
-        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string startdate, string enddate, string period, string reportingUnit, string filename);
+        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename,string containerName);
+
 
     }
 }
