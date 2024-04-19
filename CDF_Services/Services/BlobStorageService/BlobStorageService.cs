@@ -8,6 +8,7 @@ using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using System.Data.Entity;
 using System.Globalization;
@@ -55,13 +56,14 @@ namespace CDF_Services.Services.BlobStorageService
                 var sasToken = blobSasBuilder.ToSasQueryParameters(new
                 StorageSharedKeyCredential(AccountName, AccountKey)).ToString();
                 var sasURL = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+                writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
                 writer.WriteLine(sasURL);
                 return new JsonResult(new { blobSASUrl = sasURL });
 
             }
 
         }
-
         public async Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
         {
             string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
@@ -71,23 +73,24 @@ namespace CDF_Services.Services.BlobStorageService
             containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
             int totalCount = 0;
-            await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
-            {
-                totalCount++;
-            }
-            period = string.IsNullOrEmpty(period) ? DateTime.Now.ToString("MM-yyyy") : period;
+
+
+            // period = string.IsNullOrEmpty(period) ? DateTime.Now.ToString("MM-yyyy") : period;
 
             string query = "";
             string startdate = "";
             string enddate = "";
-            if (DateTime.TryParseExact(period, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+            if (!string.IsNullOrEmpty(period))
             {
-                DateTime fromDate = new DateTime(parsedDate.Year, parsedDate.Month, 1);
-                DateTime toDate = fromDate.AddMonths(1).AddDays(-1);
-                startdate = fromDate.ToString("yyyy-MM-dd");
-                enddate = toDate.ToString("yyyy-MM-dd");               
+                if (DateTime.TryParseExact(period, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    DateTime fromDate = new DateTime(parsedDate.Year, parsedDate.Month, 1);
+                    DateTime toDate = fromDate.AddMonths(1).AddDays(-1);
+                    startdate = fromDate.ToString("yyyy-MM-dd");
+                    enddate = toDate.ToString("yyyy-MM-dd");
+                }
             }
-
+      
             if (!string.IsNullOrEmpty(startdate))
             {
                 if (!string.IsNullOrEmpty(query))
@@ -114,48 +117,105 @@ namespace CDF_Services.Services.BlobStorageService
 
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-                writer.WriteLine(query);
+                writer.WriteLine("---------------"+DateTime.Now+"---------------");
+                writer.WriteLine("Q : "+query);
             }
 
             string continuationToken = null;
             int skip = (int)((pageNumber - 1) * pageSize);
+          //  skip = 0;
             List<Object> blobTags = new List<Object>();
-
             if (!string.IsNullOrEmpty(query))
             {
-                  await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
-                  {
-                      if (skip >= page.Values.Count)
-                      {
-                          skip -= page.Values.Count;
-                          continuationToken = page.ContinuationToken;
-                          continue;
-                      }
+               
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    totalCount = 0;
+                    await foreach (TaggedBlobItem blobItem in containerClient.FindBlobsByTagsAsync(query))
+                    {                       
+                            if (blobItem.BlobName.Contains(filename, StringComparison.OrdinalIgnoreCase))
+                            {
+                               
+                                totalCount++;
+                            }
+                            
+                    }
 
-                      var items = page.Values.Skip(skip);
+                    await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
+                    {
+                    
+                        foreach (TaggedBlobItem blobItem in page.Values)
+                        {
+                            if (blobItem.BlobName.Contains(filename, StringComparison.OrdinalIgnoreCase))
+                            {
+                                BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                                GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                                blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+                            }
 
-                      foreach (TaggedBlobItem blobItem in items)
-                      {
-                          BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
-                          GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
-                          blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
-                      }
+                            if (blobTags.Count >= pageSize)
+                            {
+                                break;
+                            }
+                        }
 
-                      if (blobTags.Count >= pageSize)
-                      {
-                          break;
-                      }
+                        if ((int)skip >= (int)page.Values.Count)
+                        {
+                            skip -= page.Values.Count;
+                            continuationToken = page.ContinuationToken;
+                            continue;
+                        }
+                        if (blobTags.Count >= pageSize)
+                        {
+                            break;
+                        }
+                       
+                        skip = Math.Max(0, pageSize - blobTags.Count);
+                       
+                        continuationToken = page.ContinuationToken;
+                    }
+                }
+                else
+                {
+                    await foreach (TaggedBlobItem blob in containerClient.FindBlobsByTagsAsync(query))
+                    {
+                        totalCount++;
+                    }
+                    await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
+                    {
+                        if (skip >= page.Values.Count)
+                        {
+                            skip -= page.Values.Count;
+                            continuationToken = page.ContinuationToken;
+                            continue;
+                        }
 
-                      skip = Math.Max(0, (int)(pageSize - blobTags.Count));
-                      continuationToken = page.ContinuationToken;
-                  }
+                        var items = page.Values.Skip(skip);
 
-                  return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+                        foreach (TaggedBlobItem blobItem in items)
+                        {
+                            BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                            GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                            blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });                           
+                        }
 
+                        if (blobTags.Count >= pageSize)
+                        {
+                            break;
+                        }
 
-              
+                        skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+                        continuationToken = page.ContinuationToken;
+                    }
+                }
+
+                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
             }
 
+            await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
+            {
+                totalCount++;
+            }
             await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: filename).AsPages(continuationToken, pageSize))
             {
                 if (skip >= page.Values.Count)
@@ -187,24 +247,38 @@ namespace CDF_Services.Services.BlobStorageService
         }
 
 
-        public async Task<IActionResult> FilterBlobs1(int pageSize , int pageNumber , string startdate, string enddate, string period , string reportingUnit, string filename ,string containerName)
+
+        public async Task<IActionResult> FilterBlobs1(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
         {
             string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
             var serviceClient = new BlobServiceClient(connectionString);
 
-             containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
+            containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
             int totalCount = 0;
-            await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
-            {
-                totalCount++;
-            }
+           
+
+           // period = string.IsNullOrEmpty(period) ? DateTime.Now.ToString("MM-yyyy") : period;
+
             string query = "";
-
-
+            string startdate = "";
+            string enddate = "";
             if (!string.IsNullOrEmpty(startdate))
             {
+               if (DateTime.TryParseExact(period, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
+                {
+                    DateTime fromDate = new DateTime(parsedDate.Year, parsedDate.Month, 1);
+                    DateTime toDate = fromDate.AddMonths(1).AddDays(-1);
+                    startdate = fromDate.ToString("yyyy-MM-dd");
+                    enddate = toDate.ToString("yyyy-MM-dd");
+                }
+            }
+            if (!string.IsNullOrEmpty(startdate))
+            {
+                if (!string.IsNullOrEmpty(query))
+                    query += " AND ";
+
                 query += @$"""period"" >= '{startdate}'";
             }
 
@@ -216,14 +290,6 @@ namespace CDF_Services.Services.BlobStorageService
                 query += @$"""period"" <= '{enddate}'";
             }
 
-          /*  if (!string.IsNullOrEmpty(period))
-            {
-                if (!string.IsNullOrEmpty(query))
-                    query += " AND ";
-
-                query += @$"""period"" = '{period}'";
-            }*/
-
             if (!string.IsNullOrEmpty(reportingUnit))
             {
                 if (!string.IsNullOrEmpty(query))
@@ -232,58 +298,60 @@ namespace CDF_Services.Services.BlobStorageService
                 query += @$"""reportingunit"" = '{reportingUnit}'";
             }
 
-
-
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
+                writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
                 writer.WriteLine(query);
             }
+
             string continuationToken = null;
-
             int skip = (int)((pageNumber - 1) * pageSize);
-
             List<Object> blobTags = new List<Object>();
 
             if (!string.IsNullOrEmpty(query))
             {
-
-                await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query)
-                    .AsPages(continuationToken, pageSize))
+                await foreach (TaggedBlobItem blob in containerClient.FindBlobsByTagsAsync(query))
                 {
-                    if (skip >= page.Values.Count)
-                    {
-                        skip -= page.Values.Count;
-                        continuationToken = page.ContinuationToken;
-                        continue;
-                    }
-
-                    var items = page.Values.Skip(skip);
-
-                    foreach (TaggedBlobItem blobItem in items)
-                    {
-
-                        BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
-                        GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
-                        blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
-
-                    }
-
-                    if (blobTags.Count >= pageSize)
-                    {
-                        break;
-                    }
-
-                    skip = Math.Max(0, (int)(pageSize - blobTags.Count));
-
-                    continuationToken = page.ContinuationToken;
+                    totalCount++;
                 }
-                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+                await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
+                  {
+                      if (skip >= page.Values.Count)
+                      {
+                          skip -= page.Values.Count;
+                          continuationToken = page.ContinuationToken;
+                          continue;
+                      }
 
+                      var items = page.Values.Skip(skip);
+
+                      foreach (TaggedBlobItem blobItem in items)
+                      {
+                          BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                          GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                          blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+                      }
+
+                      if (blobTags.Count >= pageSize)
+                      {
+                          break;
+                      }
+
+                      skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+                      continuationToken = page.ContinuationToken;
+                  }
+
+                  return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+
+
+              
             }
-
-
-            await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: null)
-              .AsPages(continuationToken, pageSize))
+            await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
+            {
+                totalCount++;
+            }
+            await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: filename).AsPages(continuationToken, pageSize))
             {
                 if (skip >= page.Values.Count)
                 {
@@ -297,27 +365,24 @@ namespace CDF_Services.Services.BlobStorageService
                 foreach (BlobItem blobItem in items)
                 {
                     BlobClient blobClient = containerClient.GetBlobClient(blobItem.Name);
-
                     GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
                     blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Tags });
-
                 }
+
                 if (blobTags.Count >= pageSize)
                 {
                     break;
                 }
-                skip = Math.Max(0, (int)pageSize - blobTags.Count);
 
+                skip = Math.Max(0, (int)pageSize - blobTags.Count);
                 continuationToken = page.ContinuationToken;
             }
 
             return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
-
-
         }
 
 
-        }
+       }
 
 
 }

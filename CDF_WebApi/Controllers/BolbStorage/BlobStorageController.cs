@@ -87,12 +87,23 @@ namespace CDF_WebApi.Controllers.BolbStorage
                         blobClient.Upload(stream);
                         await blobClient.SetAccessTierAsync(AccessTier.Hot);
 
+                        IDictionary<string, string> tags = new Dictionary<string, string>
+                        {
+                            { "file",fileName },
+                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                        };
+
+                        await blobClient.SetTagsAsync(tags);
                         var fileUrl = blobClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
                         writer.Write(fileUrl);
                     }
                 }
                 catch (Exception ex)
                 {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
                     writer.Write(ex.Message);
                     return new JsonResult(new { StatusCode = 400, Message = ex.Message });
                 }
