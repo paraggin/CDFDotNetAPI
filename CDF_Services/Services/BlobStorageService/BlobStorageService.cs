@@ -3,12 +3,14 @@ using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using CDF_Core.Entities.Blob_Storage;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using System.Data.Entity;
 using System.Globalization;
@@ -51,8 +53,14 @@ namespace CDF_Services.Services.BlobStorageService
                     BlobContainerName = ContainerName,
                     BlobName = BlobName,
                     ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "c",
                 };
-                blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
+                  //blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
+                blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.All);
+                //blobSasBuilder.SetPermissions(BlobContainerSasPermissions.All);
+                // blobSasBuilder.SetPermissions(BlobContainerSasPermissions.Write);
+
                 var sasToken = blobSasBuilder.ToSasQueryParameters(new
                 StorageSharedKeyCredential(AccountName, AccountKey)).ToString();
                 var sasURL = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";

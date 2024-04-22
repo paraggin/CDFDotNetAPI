@@ -72,7 +72,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
                         string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
                         var fileName = Path.GetFileName(file.FileName);
-                        var fileType = Path.GetExtension(fileName);
+                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
 
                         BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
 
@@ -82,10 +82,12 @@ namespace CDF_WebApi.Controllers.BolbStorage
                         }
 
                         BlobClient blobClient = blobContainerClient.GetBlobClient(fileName);
-
+                        string contentType = GetContentType(fileExtension);
                         using Stream stream = file.OpenReadStream();
                         blobClient.Upload(stream);
                         await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
 
                         IDictionary<string, string> tags = new Dictionary<string, string>
                         {
@@ -111,7 +113,20 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
             return new JsonResult(new { StatusCode = 200 });
         }
-
+        private string GetContentType(string fileExtension)
+        {
+            switch (fileExtension)
+            {
+                case ".docx":
+                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".pdf":
+                    return "application/pdf";
+                case ".xlsx":
+                    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                default:
+                    return "application/octet-stream";
+            }
+        }
 
 
     }
