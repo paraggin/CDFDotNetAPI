@@ -1,8 +1,9 @@
 # Lazard Azure webapp
 cdf-frontend | Deployment Center
 Web App (Lazard Azure/gajerap_priv@lazard.com)
-URL : cdf-frontend.azurewebsites.net
-API URL : https://cdf-frontend.azurewebsites.net/swagger/index.html
+
+- URL : cdf-frontend.azurewebsites.net
+- API URL : https://cdf-frontend.azurewebsites.net/swagger/index.html
 
 - FTPS endpoint: ftps://waws-prod-blu-335.ftp.azurewebsites.windows.net/site/wwwroot
 - FTPS Username: cdf-frontend\$cdf-frontend
