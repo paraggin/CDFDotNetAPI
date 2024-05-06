@@ -1,20 +1,14 @@
-using System.Text;
 using AutoMapper;
 using CDF_Core.Models.Auth;
 using CDF_WebApi.Middlewares;
-using CDF_Core.Models.Auth;
 using CDF_Services.SignalrHub;
 using CDF_Infrastructure.Persistence.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using CDF_Services.Mapping;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using CDF_Services.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http.Features;
 
 var builder = WebApplication.CreateBuilder(args);

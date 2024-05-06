@@ -56,6 +56,15 @@ namespace CDF_WebApi.Controllers.BolbStorage
         public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1,  string? period = null, string? reportingUnit = null, string? filename = null,string? containerName= "")
         {
             return await _BlobStorageService.FilterBlobs((int)pageSize,(int) pageNumber, period, reportingUnit, filename, containerName);
+            //return await _BlobStorageService.FilterBlobsUsingRestAPI((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
+
+        }
+
+        [HttpGet]
+        [Route("ListBlobsv3")]
+        public async Task<IActionResult> ListBlobsv3(int? pageSize = 10)
+        {
+            return await _BlobStorageService.ListBlobsAsyncREST();
 
         }
 
@@ -113,6 +122,68 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
             return new JsonResult(new { StatusCode = 200 });
         }
+
+        [HttpPost]
+        [Route("uploadBlobMultiple")]
+        public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    for (int i = 0; i < numberOfUploads; i++)
+                    {
+                        if (file.Length > 0)
+                        {
+                            string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+
+                            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+                            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+                            BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
+
+                            if (!await blobContainerClient.ExistsAsync())
+                            {
+                                return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                            }
+
+                            // Append an incremented digit to the filename
+                            //  string uniqueFileName = $"{fileName}_{i}{fileExtension}";
+                            string uniqueFileName = $"{i}{fileExtension}";
+                            BlobClient blobClient = blobContainerClient.GetBlobClient(uniqueFileName);
+
+                            string contentType = GetContentType(fileExtension);
+                            using Stream stream = file.OpenReadStream();
+                            blobClient.Upload(stream);
+                            await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                            await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
+                            IDictionary<string, string> tags = new Dictionary<string, string>
+                    {
+                        { "file", file.FileName },
+                        { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                    };
+
+                            await blobClient.SetTagsAsync(tags);
+                            var fileUrl = blobClient.Uri.AbsoluteUri;
+                            writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                            writer.Write(fileUrl);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200 });
+        }
+
         private string GetContentType(string fileExtension)
         {
             switch (fileExtension)

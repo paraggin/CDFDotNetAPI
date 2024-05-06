@@ -9,6 +9,8 @@ namespace CDF_Services.IServices.IBlobStorageService
 
         Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename,string containerName);
 
+        Task<IActionResult> FilterBlobsUsingRestAPI(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
 
+        Task<IActionResult> ListBlobsAsyncREST();
     }
 }

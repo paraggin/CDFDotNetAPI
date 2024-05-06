@@ -7,6 +7,7 @@ using CDF_Core.Entities.PNP_Accounts;
 using Microsoft.AspNetCore.Http;
 using CDF_Core.Models.Auth;
 using CDF_Core.Entities.Blob_Storage;
+using CDF_Core.Entities.Holiday_Calendar;
 
 namespace CDF_Infrastructure.Persistence.Data
 {
@@ -23,6 +24,11 @@ namespace CDF_Infrastructure.Persistence.Data
         public DbSet<RegisterType> RegisterType { get; set; }
 
         public DbSet<PNP_Accounts> PNP_Accounts { get; set; }
+
+        public DbSet<Event> Event { get; set; }
+
+        public DbSet<Holiday> Holiday { get; set; }
+
         //public DbSet<Blob_Storage> Blob_Storage { get; set; }
 
         public override int SaveChanges()

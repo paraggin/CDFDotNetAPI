@@ -14,6 +14,8 @@ using Microsoft.EntityFrameworkCore;
 using Consfd = CDF_Services.Constants.Constants;
 using CDF_Services.IServices.IBlobStorageService;
 using CDF_Services.Services.BlobStorageService;
+using CDF_Services.IServices.IHolidayCalendarServices;
+using CDF_Services.Services.HolidayCalendarServices;
 
 
 namespace CDF_Services.DependencyInjection
@@ -40,6 +42,7 @@ namespace CDF_Services.DependencyInjection
 
             #region Get PNP Account Data
             services.AddScoped<IPnpAccountServices, PnpAccountService>();
+            services.AddScoped<IHolidayCalendarService, HolidayCalendarService>();
             #endregion
 
             #region Blob storage
