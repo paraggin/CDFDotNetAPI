@@ -9,3 +9,10 @@ Web App (Lazard Azure/gajerap_priv@lazard.com)
 - FTPS Username: "cdf-frontend\$cdf-frontend"
 - Password: "praiXLdSfcirlKkDpEBb3xYvJsJnbyKmn3hPTm9frEiX54sdw5g03qSi4unu"
 =======================================
+# Lazard Azure Storage Account
+"AzureBlobStorage": {
+  "ConnectionString": "",
+  "AccountName": "eu1corpcorpdceblbstr01",
+  "AccountKey": "",
+  "ContainerName": "blob-upload-cdf"
+}
