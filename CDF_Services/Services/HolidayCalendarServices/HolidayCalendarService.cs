@@ -16,9 +16,7 @@ namespace CDF_Services.Services.HolidayCalendarServices
     public class HolidayCalendarService : IHolidayCalendarService
     {
         private readonly ApplicationDBContext _dbContext;
-        private readonly IGenericRepository<Event> _IGenericRepository;
-        private readonly IUnitOfWork<Event> _IUnitOfWork;
-
+       
 
         public HolidayCalendarService(ApplicationDBContext dbContext) {
             _dbContext = dbContext;
@@ -32,12 +30,6 @@ namespace CDF_Services.Services.HolidayCalendarServices
             return new JsonResult(new { data = eventList });
         }
 
-        public async Task<IActionResult> ListHolidays()
-        {
-
-            var holidayList = _dbContext.Holiday.ToList();
-
-            return new JsonResult(new { data = holidayList });
-        }
+      
     }
 }

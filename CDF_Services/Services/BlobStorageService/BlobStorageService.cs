@@ -9,20 +9,14 @@ using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data.Entity;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
-using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Reflection.Metadata.BlobBuilder;
 
 
 namespace CDF_Services.Services.BlobStorageService

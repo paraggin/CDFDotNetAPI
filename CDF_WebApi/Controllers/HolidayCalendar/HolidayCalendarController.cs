@@ -1,9 +1,6 @@
-﻿using CDF_Core.Entities.PNP_Accounts;
-using CDF_Services.IServices.IHolidayCalendarServices;
-using CDF_Services.Services.HolidayCalendarServices;
+﻿using CDF_Services.IServices.IHolidayCalendarServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Constants = CDF_Services.Constants.Constants;
 
 namespace CDF_WebApi.Controllers.HolidayCalendar
 {
@@ -13,15 +10,11 @@ namespace CDF_WebApi.Controllers.HolidayCalendar
     public class HolidayCalendarController : ControllerBase
     {
 
-        private readonly IHolidayCalendarService _HolidayServices;
-        private readonly Constants _IConstants;
-        private readonly IConfiguration _configuration;
+        private readonly IHolidayCalendarService _HolidayServices;     
 
-        public HolidayCalendarController(IHolidayCalendarService HolidayServices, IConfiguration configuration, Constants IConstants)
+        public HolidayCalendarController(IHolidayCalendarService HolidayServices)
         {
-            _HolidayServices = HolidayServices;
-            _configuration = configuration;
-            _IConstants = IConstants;
+            _HolidayServices = HolidayServices;         
         }
         [HttpGet]
         [Route("getCalendarEvents")]
@@ -29,5 +22,6 @@ namespace CDF_WebApi.Controllers.HolidayCalendar
         {
             return await _HolidayServices.ListEvents();
         }
+        
     }
 }

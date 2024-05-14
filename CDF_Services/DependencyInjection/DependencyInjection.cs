@@ -32,7 +32,7 @@ namespace CDF_Services.DependencyInjection
             // b=>b.MigrationsAssembly(typeof(ApplicationDBContext).Assembly.FullName)),ServiceLifetime.Transient);
 
             services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
-           configuration.GetConnectionString("myConnection")));
+            configuration.GetConnectionString("myConnection")));
             services.AddSignalR();
 
             services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
@@ -42,8 +42,13 @@ namespace CDF_Services.DependencyInjection
 
             #region Get PNP Account Data
             services.AddScoped<IPnpAccountServices, PnpAccountService>();
-            services.AddScoped<IHolidayCalendarService, HolidayCalendarService>();
             #endregion
+
+            services.AddScoped<IHolidayCalendarService, HolidayCalendarService>();
+            services.AddScoped<IHolidayService, HolidayService>();
+            services.AddScoped<IEvent_TypeService, Event_TypeService>();
+            services.AddScoped<IWorkForceMasterService, WorkForceMasterService>();
+            services.AddScoped<IITDepartmentService,DepartmentService>();
 
             #region Blob storage
             services.AddScoped<IBlobStorageService, BlobStorageService>();

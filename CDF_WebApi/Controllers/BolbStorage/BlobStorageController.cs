@@ -3,7 +3,7 @@ using Azure.Storage.Blobs.Models;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using Newtonsoft.Json;
 using Constants = CDF_Services.Constants.Constants;
 
 namespace CDF_WebApi.Controllers.BolbStorage
@@ -25,8 +25,41 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _IConstants = IConstants;
 
 
-        }       
+        }
+        [HttpPost]
+        [Route("webhook")]
+        public IActionResult ReceiveWebhook([FromBody] dynamic payload)
+        {
+            try
+            {
+                // Parse the incoming JSON payload
+                string jsonString = JsonConvert.SerializeObject(payload);
 
+                // Process the webhook data
+                // Example: Log it
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    Console.WriteLine("Received webhook payload: " + jsonString);
+                    writer.WriteLine("Received webhook payload: " + jsonString);
+                }
+                // Add your custom processing logic here
+
+                // Respond with a success status code
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    writer.WriteLine("Error processing webhook: " + ex.Message);
+                }
+                // Log any errors
+                Console.WriteLine("Error processing webhook: " + ex.Message);
+
+                // Respond with an error status code
+                return StatusCode(500);
+            }
+        }
 
         [HttpGet]
         [Route("DownloadFile")]
@@ -56,7 +89,6 @@ namespace CDF_WebApi.Controllers.BolbStorage
         public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1,  string? period = null, string? reportingUnit = null, string? filename = null,string? containerName= "")
         {
             return await _BlobStorageService.FilterBlobs((int)pageSize,(int) pageNumber, period, reportingUnit, filename, containerName);
-            //return await _BlobStorageService.FilterBlobsUsingRestAPI((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
 
         }
 
@@ -72,6 +104,11 @@ namespace CDF_WebApi.Controllers.BolbStorage
         [Route("uploadBlob")]
         public async Task<IActionResult> uploadBlob(IFormFile file, string? containerName = "container-poc")
         {
+
+           // string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
+            string logFilePath = Path.Combine(AppContext.BaseDirectory, "log.txt");
+
+            //  using (StreamWriter writer = new StreamWriter(logFilePath, true))
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
                 try
@@ -107,6 +144,17 @@ namespace CDF_WebApi.Controllers.BolbStorage
                         await blobClient.SetTagsAsync(tags);
                         var fileUrl = blobClient.Uri.AbsoluteUri;
                         writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        var propertiesJson = JsonConvert.SerializeObject(blobClient.GetProperties(), Formatting.Indented);
+                        var tagsJson = JsonConvert.SerializeObject(blobClient.GetTags(), Formatting.Indented);
+                        var typeJson = JsonConvert.SerializeObject(blobClient.GetType(), Formatting.Indented);
+
+                        // Write JSON strings to the log file
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.WriteLine("Properties : " + propertiesJson + "---------------");
+                        writer.WriteLine("Tags : " + tagsJson + "---------------");
+                        writer.WriteLine("Type : " + typeJson + "---------------");
+
+
 
                         writer.Write(fileUrl);
                     }

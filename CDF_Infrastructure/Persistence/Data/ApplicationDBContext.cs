@@ -29,6 +29,13 @@ namespace CDF_Infrastructure.Persistence.Data
 
         public DbSet<Holiday> Holiday { get; set; }
 
+        public DbSet<Event_Type> Event_Type { get; set; }
+
+        public DbSet<WorkForceMaster> WorkForceMaster { get; set; }
+
+        public DbSet<ITDepartment> ITDepartment { get; set; }
+
+
         //public DbSet<Blob_Storage> Blob_Storage { get; set; }
 
         public override int SaveChanges()

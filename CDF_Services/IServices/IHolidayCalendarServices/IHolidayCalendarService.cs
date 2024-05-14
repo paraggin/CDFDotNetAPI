@@ -11,6 +11,5 @@ namespace CDF_Services.IServices.IHolidayCalendarServices
     {
 
         Task<IActionResult> ListEvents();
-        Task<IActionResult> ListHolidays();
     }
 }
