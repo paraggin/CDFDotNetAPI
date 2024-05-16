@@ -4,6 +4,7 @@ using Azure.Storage.Blobs.Models;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Text;
 using Constants = CDF_Services.Constants.Constants;
 
@@ -26,6 +27,85 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _IConstants = IConstants;
 
 
+        }
+
+        //https://blobpoc02.blob.core.windows.net/container-poc/
+        [HttpPost]
+        [Route("uploadBlobTest")]
+        public async Task<IActionResult> uploadBlobTest()
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                string blobContents = "Testing identity";
+                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                // Get a credential and create a client object for the blob container.
+                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                new DefaultAzureCredential());
+
+                try
+                {
+                    // Create the container if it does not exist.
+                    await containerClient.CreateIfNotExistsAsync();
+
+                    // Upload text to a new block blob.
+                    byte[] byteArray = Encoding.ASCII.GetBytes(blobContents);
+
+                    using (MemoryStream stream = new MemoryStream(byteArray))
+                    {
+                        await containerClient.UploadBlobAsync("Test_F1", stream);
+                    }
+
+                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
+
+                }
+                catch (Exception e)
+                {
+                    writer.WriteLine("Identity Error :" + e.ToString());
+                    return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+
+
+                }
+
+
+            }
+
+        }
+
+
+        [HttpPost]
+        [Route("webhook")]
+        public IActionResult ReceiveWebhook([FromBody] dynamic payload)
+        {
+            try
+            {
+                // Parse the incoming JSON payload
+                string jsonString = JsonConvert.SerializeObject(payload);
+
+                // Process the webhook data
+                // Example: Log it
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    Console.WriteLine("Received webhook payload: " + jsonString);
+                    writer.WriteLine("Received webhook payload: " + jsonString);
+                }
+                // Add your custom processing logic here
+
+                // Respond with a success status code
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    writer.WriteLine("Error processing webhook: " + ex.Message);
+                }
+                // Log any errors
+                Console.WriteLine("Error processing webhook: " + ex.Message);
+
+                // Respond with an error status code
+                return StatusCode(500);
+            }
         }
 
         [HttpGet]
@@ -68,50 +148,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-        //https://blobpoc02.blob.core.windows.net/container-poc/
-        [HttpPost]
-        [Route("uploadBlobTest")]
-        public async Task<IActionResult> uploadBlobTest()
-        {
-            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-            {
-                string blobContents = "Testing identity";
-                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
-
-                // Get a credential and create a client object for the blob container.
-                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
-                                                                                new DefaultAzureCredential());
-
-                try
-                {
-                    // Create the container if it does not exist.
-                    await containerClient.CreateIfNotExistsAsync();
-
-                    // Upload text to a new block blob.
-                    byte[] byteArray = Encoding.ASCII.GetBytes(blobContents);
-
-                    using (MemoryStream stream = new MemoryStream(byteArray))
-                    {
-                        await containerClient.UploadBlobAsync("Test_F1", stream);
-                    }
-
-                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
-
-                }
-                catch (Exception e)
-                {
-                    writer.WriteLine("Identity Error :"+e.ToString());
-                    return new JsonResult(new { StatusCode = 400,Message ="Identity Error :" + e.ToString() });
-
-
-                }
-
-
-            }
-
-        }
-
-
+     
         [HttpPost]
         [Route("uploadBlob")]
         public async Task<IActionResult> uploadBlob(IFormFile file, string? containerName = "container-poc")
