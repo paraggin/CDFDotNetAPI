@@ -1,9 +1,10 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure.Identity;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Text;
 using Constants = CDF_Services.Constants.Constants;
 
 namespace CDF_WebApi.Controllers.BolbStorage
@@ -25,8 +26,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _IConstants = IConstants;
 
 
-        }       
-
+        }
 
         [HttpGet]
         [Route("DownloadFile")]
@@ -67,6 +67,50 @@ namespace CDF_WebApi.Controllers.BolbStorage
             return await _BlobStorageService.ListBlobsAsyncREST();
 
         }
+
+        //https://blobpoc02.blob.core.windows.net/container-poc/
+        [HttpPost]
+        [Route("uploadBlobTest")]
+        public async Task<IActionResult> uploadBlobTest()
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                string blobContents = "Testing identity";
+                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                // Get a credential and create a client object for the blob container.
+                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                new DefaultAzureCredential());
+
+                try
+                {
+                    // Create the container if it does not exist.
+                    await containerClient.CreateIfNotExistsAsync();
+
+                    // Upload text to a new block blob.
+                    byte[] byteArray = Encoding.ASCII.GetBytes(blobContents);
+
+                    using (MemoryStream stream = new MemoryStream(byteArray))
+                    {
+                        await containerClient.UploadBlobAsync("Test_F1", stream);
+                    }
+
+                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
+
+                }
+                catch (Exception e)
+                {
+                    writer.WriteLine("Identity Error :"+e.ToString());
+                    return new JsonResult(new { StatusCode = 400,Message ="Identity Error :" + e.ToString() });
+
+
+                }
+
+
+            }
+
+        }
+
 
         [HttpPost]
         [Route("uploadBlob")]
