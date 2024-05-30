@@ -29,6 +29,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
+        // For Testing Only
         //https://blobpoc02.blob.core.windows.net/container-poc/
         [HttpPost]
         [Route("uploadBlobTest")]
@@ -72,7 +73,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-
+        // Fot Testing Only
         [HttpPost]
         [Route("webhook")]
         public IActionResult ReceiveWebhook([FromBody] dynamic payload)
@@ -148,62 +149,14 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-     
         [HttpPost]
         [Route("uploadBlob")]
         public async Task<IActionResult> uploadBlob(IFormFile file, string? containerName = "container-poc")
         {
-            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-            {
-                try
-                {
-                    if (file.Length > 0)
-                    {
-                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
-
-                        var fileName = Path.GetFileName(file.FileName);
-                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
-
-                        BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
-
-                        if (!await blobContainerClient.ExistsAsync())
-                        {
-                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
-                        }
-
-                        BlobClient blobClient = blobContainerClient.GetBlobClient(fileName);
-                        string contentType = GetContentType(fileExtension);
-                        using Stream stream = file.OpenReadStream();
-                        blobClient.Upload(stream);
-                        await blobClient.SetAccessTierAsync(AccessTier.Hot);
-                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
-
-
-                        IDictionary<string, string> tags = new Dictionary<string, string>
-                        {
-                            { "file",fileName },
-                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
-                        };
-
-                        await blobClient.SetTagsAsync(tags);
-                        var fileUrl = blobClient.Uri.AbsoluteUri;
-                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
-
-                        writer.Write(fileUrl);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
-
-                    writer.Write(ex.Message);
-                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
-                }
-            }
-
-            return new JsonResult(new { StatusCode = 200 });
+            return await _BlobStorageService.uploadBlob(file, containerName);   
         }
 
+        // For Testing Only
         [HttpPost]
         [Route("uploadBlobMultiple")]
         public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")

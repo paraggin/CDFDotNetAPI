@@ -8,6 +8,7 @@ using CDF_Core.Entities.Blob_Storage;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -43,6 +44,76 @@ namespace CDF_Services.Services.BlobStorageService
             _mapper = mapper;
             _configuration = configuration;
         }
+
+      
+        private string GetContentType(string fileExtension)
+        {
+            switch (fileExtension)
+            {
+                case ".docx":
+                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".pdf":
+                    return "application/pdf";
+                case ".xlsx":
+                    return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                default:
+                    return "application/octet-stream";
+            }
+        }
+        public async Task<IActionResult> uploadBlob(IFormFile file, string containerName)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    if (file.Length > 0)
+                    {
+                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileExtension = Path.GetExtension(fileName).ToLower(); ;
+
+                        BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
+
+                        if (!await blobContainerClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                        }
+
+                        BlobClient blobClient = blobContainerClient.GetBlobClient(fileName);
+                        string contentType = GetContentType(fileExtension);
+                        using Stream stream = file.OpenReadStream();
+                        blobClient.Upload(stream);
+                        await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
+
+                        IDictionary<string, string> tags = new Dictionary<string, string>
+                        {
+                            { "file",fileName },
+                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                        };
+
+                        await blobClient.SetTagsAsync(tags);
+                        var fileUrl = blobClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                        writer.Write(fileUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200 });
+        }
+
+
         public async Task<IActionResult> getBLobSAS(string BlobName)
         {
 

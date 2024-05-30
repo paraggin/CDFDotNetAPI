@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CDF_Services.IServices.IBlobStorageService
 {
@@ -12,5 +13,8 @@ namespace CDF_Services.IServices.IBlobStorageService
         Task<IActionResult> FilterBlobsUsingRestAPI(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
 
         Task<IActionResult> ListBlobsAsyncREST();
+
+        Task<IActionResult> uploadBlob(IFormFile file, string containerName);
+
     }
 }
