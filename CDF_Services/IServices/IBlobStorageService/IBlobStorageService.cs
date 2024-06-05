@@ -16,5 +16,13 @@ namespace CDF_Services.IServices.IBlobStorageService
 
         Task<IActionResult> uploadBlob(IFormFile file, string containerName);
 
+        Task<IActionResult> uploadBlobTest();
+
+        void ReceiveWebhook(dynamic payload);
+
+        Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads, string containerName);
+
+        Task<IActionResult> DownloadFile(string prefix);
+
     }
 }

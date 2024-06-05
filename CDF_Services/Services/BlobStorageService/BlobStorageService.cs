@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Azure;
+using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -10,20 +11,14 @@ using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data.Entity;
 using System.Globalization;
 using System.Net;
-using System.Net.Http;
-using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Reflection.Metadata.BlobBuilder;
 
 
 namespace CDF_Services.Services.BlobStorageService
@@ -44,8 +39,139 @@ namespace CDF_Services.Services.BlobStorageService
             _mapper = mapper;
             _configuration = configuration;
         }
+        public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    for (int i = 0; i < numberOfUploads; i++)
+                    {
+                        if (file.Length > 0)
+                        {
+                            string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
-      
+                            var fileName = Path.GetFileNameWithoutExtension(file.FileName);
+                            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+
+                            BlobContainerClient blobContainerClient = new BlobContainerClient(ConnectionString, containerName);
+
+                            if (!await blobContainerClient.ExistsAsync())
+                            {
+                                return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                            }
+
+                            // Append an incremented digit to the filename
+                            //  string uniqueFileName = $"{fileName}_{i}{fileExtension}";
+                            string uniqueFileName = $"{i}{fileExtension}";
+                            BlobClient blobClient = blobContainerClient.GetBlobClient(uniqueFileName);
+
+                            string contentType = GetContentType(fileExtension);
+                            using Stream stream = file.OpenReadStream();
+                            blobClient.Upload(stream);
+                            await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                            await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
+                            IDictionary<string, string> tags = new Dictionary<string, string>
+                    {
+                        { "file", file.FileName },
+                        { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                    };
+
+                            await blobClient.SetTagsAsync(tags);
+                            var fileUrl = blobClient.Uri.AbsoluteUri;
+                            writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                            writer.Write(fileUrl);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200 });
+        }
+
+
+
+        public void ReceiveWebhook( dynamic payload)
+        {
+            try
+            {
+                // Parse the incoming JSON payload
+                string jsonString = JsonConvert.SerializeObject(payload);
+
+                // Process the webhook data
+                // Example: Log it
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    Console.WriteLine("Received webhook payload: " + jsonString);
+                    writer.WriteLine("Received webhook payload: " + jsonString);
+                }
+                // Add your custom processing logic here
+
+                // Respond with a success status code
+               
+            }
+            catch (Exception ex)
+            {
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    writer.WriteLine("Error processing webhook: " + ex.Message);
+                }
+                // Log any errors
+                Console.WriteLine("Error processing webhook: " + ex.Message);
+
+                // Respond with an error status code
+              
+            }
+        }
+
+        public async Task<IActionResult> uploadBlobTest()
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                string blobContents = "Testing identity";
+                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                // Get a credential and create a client object for the blob container.
+                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                new DefaultAzureCredential());
+
+                try
+                {
+                    // Create the container if it does not exist.
+                    await containerClient.CreateIfNotExistsAsync();
+
+                    // Upload text to a new block blob.
+                    byte[] byteArray = Encoding.ASCII.GetBytes(blobContents);
+
+                    using (MemoryStream stream = new MemoryStream(byteArray))
+                    {
+                        await containerClient.UploadBlobAsync("Test_F1", stream);
+                    }
+
+                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
+
+                }
+                catch (Exception e)
+                {
+                    writer.WriteLine("Identity Error :" + e.ToString());
+                    return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+
+
+                }
+
+
+            }
+
+        }
         private string GetContentType(string fileExtension)
         {
             switch (fileExtension)
@@ -576,6 +702,23 @@ namespace CDF_Services.Services.BlobStorageService
             return null;
 
         }
+
+        public async Task<IActionResult> DownloadFile(string prefix)
+        {
+            BlobClient blobClient = new BlobClient(_configuration["AzureBlobStorage:ConnectionString"], _configuration["AzureBlobStorage:ContainerName"], prefix);
+            using (var stream = new MemoryStream())
+            {
+                await blobClient.DownloadToAsync(stream);
+                stream.Position = 0;
+                var contentType = (await blobClient.GetPropertiesAsync()).Value.ContentType;
+
+                return new FileContentResult(stream.ToArray(), contentType)
+                {
+                    FileDownloadName = blobClient.Name
+                };
+            }
+        }
+
     }
 
 

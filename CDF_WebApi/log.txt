@@ -583,3 +583,15 @@ Identity Error :Azure.Identity.CredentialUnavailableException: DefaultAzureCrede
    at Azure.Storage.Blobs.BlobContainerClient.CreateIfNotExistsInternal(PublicAccessType publicAccessType, IDictionary`2 metadata, BlobContainerEncryptionScopeOptions encryptionScopeOptions, Boolean async, CancellationToken cancellationToken)
    at Azure.Storage.Blobs.BlobContainerClient.CreateIfNotExistsAsync(PublicAccessType publicAccessType, IDictionary`2 metadata, BlobContainerEncryptionScopeOptions encryptionScopeOptions, CancellationToken cancellationToken)
    at CDF_WebApi.Controllers.BolbStorage.BlobStorageController.uploadBlobTest() in E:\Vera Multitab Usibng TeamsToolkit-React\CDFDotNetAPI\CDF_WebApi\Controllers\BolbStorage\BlobStorageController.cs:line 88
+---------------28-05-2024 04:27:35 PM---------------
+Q : 
+---------------28-05-2024 04:27:52 PM---------------
+Q : "period" >= '2024-05-01' AND "period" <= '2024-05-31'
+---------------30-05-2024 05:44:42 PM---------------
+https://blobpoc02.blob.core.windows.net/container-poc/SAP%20Accounts%20Admin.csv---------------30-05-2024 05:50:01 PM---------------
+https://blobpoc02.blob.core.windows.net/container-poc/Ad%20Groups.csv---------------30-05-2024 05:50:21 PM---------------
+https://blobpoc02.blob.core.windows.net/container-poc/Ad%20Groups?sv=2023-11-03&spr=https&se=2024-05-30T12%3A35%3A21Z&sr=b&sp=racwdxyltmei&sig=CNgMvOQGWAHi7R5Rn2C0eST09zE81q0vpjhCuKoVhrY%3D
+---------------05-06-2024 10:54:19 AM---------------
+Q : 
+---------------05-06-2024 10:56:23 AM---------------
+Q : 
