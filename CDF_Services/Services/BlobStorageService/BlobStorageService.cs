@@ -229,42 +229,97 @@ namespace CDF_Services.Services.BlobStorageService
 
         public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
         {
+            /*  using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+              {
+                 // string blobContents = "Testing identity";
+                  string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                  // Get a credential and create a client object for the blob container.
+                  BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                  new DefaultAzureCredential());
+
+                  try
+                  {
+                      string blobName=Guid.NewGuid().ToString();
+
+                      using (var stream = new MemoryStream())
+                      {
+                          await file.CopyToAsync(stream);
+                          stream.Position = 0;
+                          await containerClient.UploadBlobAsync(blobName, stream);
+
+                          return new JsonResult(new { StatusCode = 200, Message = "Success" });
+                      }
+
+
+
+
+                  }
+                  catch (Exception e)
+                  {
+                      writer.WriteLine("Identity Error :" + e.ToString());
+                      return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+
+
+                  }
+
+
+              }*/
+
+
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-               // string blobContents = "Testing identity";
-                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
-
-                // Get a credential and create a client object for the blob container.
-                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
-                                                                                new DefaultAzureCredential());
-
                 try
                 {
-                    string blobName=Guid.NewGuid().ToString();
-
-                    using (var stream = new MemoryStream())
+                    if (file.Length > 0)
                     {
-                        await file.CopyToAsync(stream);
-                        stream.Position = 0;
-                        await containerClient.UploadBlobAsync(blobName, stream);
+                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
-                        return new JsonResult(new { StatusCode = 200, Message = "Success" });
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileExtension = Path.GetExtension(fileName).ToLower(); ;
+
+                        string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                        // Get a credential and create a client object for the blob container.
+                        BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                        new DefaultAzureCredential());
+
+                        if (!await containerClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                        }
+
+                        BlobClient blobClient = containerClient.GetBlobClient(fileName);
+                        string contentType = GetContentType(fileExtension);
+                        using Stream stream = file.OpenReadStream();
+                        blobClient.Upload(stream);
+                        await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
+
+                        IDictionary<string, string> tags = new Dictionary<string, string>
+                        {
+                            { "file",fileName },
+                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                        };
+
+                        await blobClient.SetTagsAsync(tags);
+                        var fileUrl = blobClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                        writer.Write(fileUrl);
                     }
-
-
-
-
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    writer.WriteLine("Identity Error :" + e.ToString());
-                    return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
 
-
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
                 }
-
-
             }
+
+            return new JsonResult(new { StatusCode = 200 });
 
         }
         private string GetContentType(string fileExtension)
