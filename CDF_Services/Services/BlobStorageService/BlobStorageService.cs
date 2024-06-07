@@ -143,7 +143,7 @@ namespace CDF_Services.Services.BlobStorageService
 
             BlobClient blobClient = containerClient.GetBlobClient(prefix);
 
-                try
+             /*   try
                 {
                     BlobDownloadResult downloadResult = await blobClient.DownloadContentAsync();
                     string blobContents = downloadResult.Content.ToString();
@@ -154,7 +154,7 @@ namespace CDF_Services.Services.BlobStorageService
                     writer.WriteLine("Download Error 1  : " + ex.Message);
                 }
 
-
+*/
 
                 try
                 {
@@ -337,7 +337,13 @@ namespace CDF_Services.Services.BlobStorageService
 
             string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
-            var serviceClient = new BlobServiceClient(connectionString);
+           // var serviceClient = new BlobServiceClient(connectionString);
+
+
+            var credential = new DefaultAzureCredential();
+            var serviceClient = new BlobServiceClient(new Uri("https://blobpoc02.blob.core.windows.net"), credential);
+
+
 
             containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
             BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
