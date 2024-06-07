@@ -209,6 +209,48 @@ namespace CDF_Services.Services.BlobStorageService
                         await containerClient.UploadBlobAsync("Test_F1", stream);
                     }
 
+
+
+                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
+
+                }
+                catch (Exception e)
+                {
+                    writer.WriteLine("Identity Error :" + e.ToString());
+                    return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+
+
+                }
+
+
+            }
+
+        }
+
+        public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                string blobContents = "Testing identity";
+                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+                // Get a credential and create a client object for the blob container.
+                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                new DefaultAzureCredential());
+
+                try
+                {
+                    string blobName=Guid.NewGuid().ToString();
+
+                    using (var stream = new MemoryStream())
+                    {
+                        await file.CopyToAsync(stream);
+                        stream.Position = 0;
+                        await containerClient.UploadBlobAsync(blobName, stream);
+                    }
+
+
+
                     return new JsonResult(new { StatusCode = 200, Message = "Success" });
 
                 }

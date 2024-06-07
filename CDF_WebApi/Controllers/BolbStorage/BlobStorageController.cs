@@ -26,6 +26,14 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
+        [HttpPost]
+        [Route("uploadDynamicBlob_Identity")]
+        public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
+        {
+            return await _BlobStorageService.uploadDynamicBlobTest(file);
+
+        }
+
 
 
         [HttpPost]
