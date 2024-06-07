@@ -19,12 +19,14 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
        
         [HttpPost]
-        [Route("uploadBlobTest")]
-        public async Task<IActionResult> uploadBlobTest()
+        [Route("uploadBlob_Identity")]
+        public async Task<IActionResult> uploadBlob_Identity()
         {
             return await _BlobStorageService.uploadBlobTest();
 
         }
+
+
 
         [HttpPost]
         [Route("webhook")]
@@ -40,6 +42,14 @@ namespace CDF_WebApi.Controllers.BolbStorage
         {
             return await _BlobStorageService.DownloadFile(prefix);                
         
+        }
+
+        [HttpPost]
+        [Route("downloadBlob_Identity")]
+        public async Task<IActionResult> downloadBlob_Identity(string prefix)
+        {
+            return await _BlobStorageService.downloadBlobTest(prefix);
+
         }
 
         [HttpGet]

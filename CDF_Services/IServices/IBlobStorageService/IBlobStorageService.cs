@@ -24,5 +24,7 @@ namespace CDF_Services.IServices.IBlobStorageService
 
         Task<IActionResult> DownloadFile(string prefix);
 
+        Task<IActionResult> downloadBlobTest(string prefix);
+
     }
 }

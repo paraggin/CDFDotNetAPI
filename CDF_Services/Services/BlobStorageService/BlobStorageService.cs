@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data.Entity;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -132,7 +133,58 @@ namespace CDF_Services.Services.BlobStorageService
               
             }
         }
+        public async Task<IActionResult> downloadBlobTest(string prefix)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
 
+            BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
+
+            BlobClient blobClient = containerClient.GetBlobClient(prefix);
+
+                try
+                {
+                    BlobDownloadResult downloadResult = await blobClient.DownloadContentAsync();
+                    string blobContents = downloadResult.Content.ToString();
+                    writer.WriteLine("Download : " + blobContents);
+
+                }
+                catch (Exception ex) {
+                    writer.WriteLine("Download Error 1  : " + ex.Message);
+                }
+
+
+
+                try
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await blobClient.DownloadToAsync(stream);
+                        stream.Position = 0;
+
+                        var contentType = (await blobClient.GetPropertiesAsync()).Value.ContentType;
+
+                        return new FileContentResult(stream.ToArray(), contentType)
+                        {
+                            FileDownloadName = blobClient.Name
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("Download Error 1  : " + ex.Message);
+                }
+                var stream1 = new MemoryStream();
+
+                return new FileContentResult(stream1.ToArray(), "")
+                {
+                    FileDownloadName = blobClient.Name
+                };
+
+            }
+
+        }
         public async Task<IActionResult> uploadBlobTest()
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
