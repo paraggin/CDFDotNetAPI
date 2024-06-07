@@ -231,7 +231,7 @@ namespace CDF_Services.Services.BlobStorageService
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-                string blobContents = "Testing identity";
+               // string blobContents = "Testing identity";
                 string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
 
                 // Get a credential and create a client object for the blob container.
@@ -247,11 +247,12 @@ namespace CDF_Services.Services.BlobStorageService
                         await file.CopyToAsync(stream);
                         stream.Position = 0;
                         await containerClient.UploadBlobAsync(blobName, stream);
+
+                        return new JsonResult(new { StatusCode = 200, Message = "Success" });
                     }
 
 
 
-                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
 
                 }
                 catch (Exception e)
