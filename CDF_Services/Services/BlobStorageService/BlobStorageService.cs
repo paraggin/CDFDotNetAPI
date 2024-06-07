@@ -428,8 +428,63 @@ namespace CDF_Services.Services.BlobStorageService
             }
 
         }
-      
-            public async Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
+
+
+        public async Task<IActionResult> getBLobSASIdentity(string blobName)
+        {
+            string accountName = _configuration["AzureBlobStorage:AccountName"];
+            string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    // Create a BlobServiceClient to interact with the Blob service.
+                    BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+
+                    // Get the BlobContainerClient for the specific container.
+                    BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient("container-poc");
+
+                    // Get the BlobClient for the specific blob.
+                    BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                    // Define the SAS token parameters.
+                    BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
+                    {
+                        BlobContainerName = blobContainerClient.Name,
+                        BlobName = blobClient.Name,
+                        ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                        Protocol = SasProtocol.Https,
+                        Resource = "b"  // 'b' indicates Blob-level resource in the container
+                    };
+
+                    // Set the permissions for the SAS token.
+                    blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                    // Get the User Delegation Key.
+                    UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+                    // Generate the SAS token using the User Delegation Key.
+                    string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                    string sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                    // Log the SAS URL.
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine(sasUrl);
+
+                    return new JsonResult(new { blobSasUrl = sasUrl });
+                }
+                catch (Exception e)
+                {
+                    writer.WriteLine("Error :" + e.ToString());
+                    return new JsonResult(new { StatusCode = 400, Message = "Error :" + e.ToString() });
+                }
+            }
+        }
+
+
+
+        public async Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
         {
 
             try

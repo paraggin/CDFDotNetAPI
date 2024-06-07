@@ -70,6 +70,15 @@ namespace CDF_WebApi.Controllers.BolbStorage
         }
 
         [HttpGet]
+        [Route("getBLobSASIdentity")]
+        public async Task<IActionResult> getBLobSASIdentity(string BlobName)
+        {
+
+            return await _BlobStorageService.getBLobSASIdentity(BlobName);
+
+        }
+
+        [HttpGet]
         [Route("ListBlobsv2")]
         public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1,  string? period = null, string? reportingUnit = null, string? filename = null,string? containerName= "")
         {
