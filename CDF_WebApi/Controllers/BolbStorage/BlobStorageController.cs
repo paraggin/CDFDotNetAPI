@@ -1,4 +1,7 @@
-﻿using CDF_Services.IServices.IBlobStorageService;
+﻿using CDF_Core.Entities.SnowFlake;
+using CDF_Services.IServices.IBlobStorageService;
+using CDF_Services.IServices.ISnowFlakeService;
+using CDF_Services.Services.SnowFlakeService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +14,8 @@ namespace CDF_WebApi.Controllers.BolbStorage
     public class BlobStorageController : Controller
     {
         private readonly IBlobStorageService _BlobStorageService;      
-       
+
+
         public BlobStorageController(IBlobStorageService BlobStorageService)
         {
             _BlobStorageService = BlobStorageService;          

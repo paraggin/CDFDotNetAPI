@@ -66,6 +66,8 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRoles>().AddEntityFrame
 builder.Services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
     builder.Configuration.GetConnectionString("myConnection")));
 
+
+
 //builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
 //builder.Services.AddAuthentication(options =>

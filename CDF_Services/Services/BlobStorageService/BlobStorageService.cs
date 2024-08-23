@@ -6,6 +6,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using CDF_Core.Entities.Blob_Storage;
+using CDF_Core.Entities.SnowFlake;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
@@ -13,7 +14,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using System.Data.Entity;
+using Snowflake.Data.Client;
+using System.Data.Common;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -40,6 +43,59 @@ namespace CDF_Services.Services.BlobStorageService
             _mapper = mapper;
             _configuration = configuration;
         }
+
+      
+
+        public async Task<IActionResult> ListEmployeeDetai1l()
+        {
+            var employees = new List<Employee>();
+            try
+            {
+                using (IDbConnection conn = new SnowflakeDbConnection())
+                {
+                    conn.ConnectionString = "Account=TLUNZQI.EH47344;User=HIRENDEVANI;Password=Surat@8505;Database=EMPLOYEEINFODB;Schema=EMPLOYEE;Role=ACCOUNTADMIN";
+                    conn.Open();
+                    Console.WriteLine("Connection successful!");
+
+                    using (IDbCommand cmd = conn.CreateCommand())
+                    {
+                        var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
+
+                        //cmd.CommandText = "USE WAREHOUSE XXXX_WAREHOUSE";
+                        // cmd.ExecuteNonQuery();
+                        cmd.CommandText = query;  // sql opertion fetching 
+                                                  //data from an existing table
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var employee = new Employee
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ID")),
+                                    Name = reader.GetString(reader.GetOrdinal("NAME")),
+                                    Email = reader.GetString(reader.GetOrdinal("EMAIL")),
+                                    Dept = reader.GetString(reader.GetOrdinal("DEPT")),
+                                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CREATED_AT"))
+                                };
+
+                                employees.Add(employee);
+                            }
+                        }
+                        conn.Close();
+
+                    }
+                }
+            }
+            catch (DbException exc)
+            {
+                Console.WriteLine("Error Message: {0}", exc.Message);
+                // testStatus = false;
+            }
+
+            return new JsonResult(new { StatusCode = 200, Data=employees});
+          
+        }
+
         public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
@@ -229,44 +285,7 @@ namespace CDF_Services.Services.BlobStorageService
 
         public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
         {
-            /*  using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-              {
-                 // string blobContents = "Testing identity";
-                  string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
-
-                  // Get a credential and create a client object for the blob container.
-                  BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
-                                                                                  new DefaultAzureCredential());
-
-                  try
-                  {
-                      string blobName=Guid.NewGuid().ToString();
-
-                      using (var stream = new MemoryStream())
-                      {
-                          await file.CopyToAsync(stream);
-                          stream.Position = 0;
-                          await containerClient.UploadBlobAsync(blobName, stream);
-
-                          return new JsonResult(new { StatusCode = 200, Message = "Success" });
-                      }
-
-
-
-
-                  }
-                  catch (Exception e)
-                  {
-                      writer.WriteLine("Identity Error :" + e.ToString());
-                      return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
-
-
-                  }
-
-
-              }*/
-
-
+      
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
                 try

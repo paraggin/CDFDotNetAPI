@@ -11,12 +11,14 @@ using CDF_Services.IServices.IPnpAccountServices;
 using CDF_Services.Auth;
 using CDF_Services.Helper.Emails;
 using Microsoft.EntityFrameworkCore;
+using Snowflake.Data.Client;
 using Consfd = CDF_Services.Constants.Constants;
 using CDF_Services.IServices.IBlobStorageService;
 using CDF_Services.Services.BlobStorageService;
 using CDF_Services.IServices.IHolidayCalendarServices;
 using CDF_Services.Services.HolidayCalendarServices;
-
+using CDF_Services.IServices.ISnowFlakeService;
+using CDF_Services.Services.SnowFlakeService;
 
 namespace CDF_Services.DependencyInjection
 {
@@ -25,16 +27,12 @@ namespace CDF_Services.DependencyInjection
         public static IServiceCollection ImplementPersistence(this IServiceCollection services,
             IConfiguration configuration)
         {
-            //services.AddDbContext<ApplicationDBContext>
-
-            //services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
-            // configuration.GetConnectionString("myConnection"),
-            // b=>b.MigrationsAssembly(typeof(ApplicationDBContext).Assembly.FullName)),ServiceLifetime.Transient);
-
+            // Register EF Core DbContext
             services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
-           configuration.GetConnectionString("myConnection")));
+               configuration.GetConnectionString("myConnection")));
             services.AddSignalR();
 
+            // Register scoped services
             services.AddScoped(typeof(IUnitOfWork<>), typeof(UnitOfWork<>));
             services.AddScoped<ICreateToken, CreateToken>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -59,6 +57,24 @@ namespace CDF_Services.DependencyInjection
 
             #region HttpContext
             services.AddHttpContextAccessor();
+            #endregion
+
+            #region Snowflake
+            // Register SnowflakeDbConnection
+            services.AddScoped<SnowflakeDbConnection>(provider =>
+            {
+                var connectionString = configuration.GetConnectionString("SnowflakeConnection");
+                var connection = new SnowflakeDbConnection { ConnectionString = connectionString };
+               /* connection.OpenAsync();
+                // Test a simple query to verify connection
+                using (var command = new SnowflakeDbCommand("SELECT CURRENT_VERSION()", connection))
+                {
+                    var version =  command.ExecuteScalarAsync();
+                    Console.WriteLine($"Snowflake version: {version}");
+                }*/
+                return connection;
+            });
+            services.AddScoped<ISnowFlakeService,SnowFlakeService>();
             #endregion
 
             return services;

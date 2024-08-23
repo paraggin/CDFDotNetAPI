@@ -16,10 +16,7 @@ namespace CDF_Services.Services.HolidayCalendarServices
     public class HolidayCalendarService : IHolidayCalendarService
     {
         private readonly ApplicationDBContext _dbContext;
-        private readonly IGenericRepository<Event> _IGenericRepository;
-        private readonly IUnitOfWork<Event> _IUnitOfWork;
-
-
+      
         public HolidayCalendarService(ApplicationDBContext dbContext) {
             _dbContext = dbContext;
         }
