@@ -18,7 +18,11 @@ namespace CDF_Services.Services.SnowFlakeService
             {
                 using (IDbConnection conn = new SnowflakeDbConnection())
                 {
-                    conn.ConnectionString = "Account=TLUNZQI.EH47344;User=hirendevani;Password=Surat@8505;Warehouse=my_warehouse;Database=EMPLOYEEINFODB;Schema=EMPLOYEE;Role=ACCOUNTADMIN";
+                    //conn.ConnectionString = "account=pz05486;user=hirendevani;Password=Surat@8505;warehouse=my_warehouse;database=EMPLOYEEINFODB;schema=EMPLOYEE;role=ACCOUNTADMIN";
+                    //conn.ConnectionString = "account=pz05486.central-india.azure.snowflakecomputing.com;user=HIRENDEVANI;password=Surat@8505;db=EMPLOYEEINFODB;schema=EMPLOYEE;warehouse=my_warehouse;role=ACCOUNTADMIN";
+                    //conn.ConnectionString = "account=EH47344;user=HIRENDEVANI;password=Surat@8505";
+                    conn.ConnectionString = "Host=pz05486.central-india.azure.snowflakecomputing.com;User=hirendevani;Password=Surat@8505;Account=pz05486;Db=EMPLOYEEINFODB;schema=EMPLOYEE;warehouse=my_warehouse;Role=ACCOUNTADMIN";
+                   
                     conn.Open();
                     Console.WriteLine("Connection successful!");
 
@@ -60,121 +64,11 @@ namespace CDF_Services.Services.SnowFlakeService
 
             }
 
-           /* try
-            {
-                using (var conn = new SnowflakeDbConnection { ConnectionString = "Account=TLUNZQI.EH47344;User=hirendevani;Password=Surat@8505;Warehouse=my_warehouse;Database=EMPLOYEEINFODB;Schema=EMPLOYEE;Role=ACCOUNTADMIN;" })
-                {
-                    // Open the connection asynchronously
-                    await conn.OpenAsync();
-                    var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
-
-                    using (var cmd = conn.CreateCommand())
-                    {
-                      
-                        cmd.CommandText = query;
-
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                var employee = new Employee
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("ID")),
-                                    Name = reader.GetString(reader.GetOrdinal("NAME")),
-                                    Email = reader.GetString(reader.GetOrdinal("EMAIL")),
-                                    Dept = reader.GetString(reader.GetOrdinal("DEPT")),
-                                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CREATED_AT"))
-                                };
-
-                                employees.Add(employee);
-                            }
-                        }
-                    }
-
-              *//*      // Define the SQL query
-                    var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
-
-                    // Initialize SnowflakeDbCommand with the query and connection
-                    using (var command = new SnowflakeDbCommand(query, conn))
-                    {
-                        // Execute the query and retrieve the data
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                var employee = new Employee
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("ID")),
-                                    Name = reader.GetString(reader.GetOrdinal("NAME")),
-                                    Email = reader.GetString(reader.GetOrdinal("EMAIL")),
-                                    Dept = reader.GetString(reader.GetOrdinal("DEPT")),
-                                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CREATED_AT"))
-                                };
-
-                                employees.Add(employee);
-                            }
-                        }
-                    }*//*
-                }
-            }
-            catch (SnowflakeDbException ex)
-            {
-                // Log detailed SnowflakeDbException
-                // Example: _logger.LogError(ex, "SnowflakeDbException occurred while querying the database.");
-                throw new ApplicationException("A Snowflake database error occurred.", ex);
-            }
-            catch (Exception ex)
-            {
-                // Log detailed general exception
-                // Example: _logger.LogError(ex, "An error occurred while querying the database.");
-                throw new ApplicationException("An error occurred while retrieving data.", ex);
-            }*/
-
-
-
             return new JsonResult(new { StatusCode = 200, Data = employees });
         }
 
 
-        public async Task<IActionResult> ListEmployeeDetail1()
-        {
-            string version = "";
-            var employees = new List<Employee>();
-        try
-        {
-            using (var conn = new SnowflakeDbConnection { ConnectionString = "Account=TLUNZQI.EH47344;User=hirendevani;Password=Surat@8505;Warehouse=my_warehouse;Database=EMPLOYEEINFODB;Schema=EMPLOYEE;Role=ACCOUNTADMIN;"           })
-            {
-                await conn.OpenAsync();
-                Console.WriteLine("Connection successful!");
-
-                   
-                using (var cmd = conn.CreateCommand())
-                {
-                    var query = "SELECT CURRENT_VERSION()"; // Test query
-                    cmd.CommandText = query;
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            Console.WriteLine($"Version: {reader.GetString(0)}");
-                                version = reader.GetString(0);
-                        }
-                    }
-                }
-                }
-            return new JsonResult(new { StatusCode = 200, Version = version });
-        }
-        catch (SnowflakeDbException sfEx)
-        {
-            Console.WriteLine($"Snowflake Error: {sfEx.Message}");
-            return new JsonResult(new { StatusCode = 400, Error = sfEx.Message,Type="SnowFlake" });
-        }
-        catch (Exception exc)
-        {
-            Console.WriteLine($"General Error: {exc.Message}");
-            return new JsonResult(new { StatusCode = 400, Error = exc.Message,Type= "General" });
-        }
+        
     }
     }
-}
+
