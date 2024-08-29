@@ -18,9 +18,7 @@ namespace CDF_Services.Services.SnowFlakeService
             {
                 using (IDbConnection conn = new SnowflakeDbConnection())
                 {
-                    //conn.ConnectionString = "account=pz05486;user=hirendevani;Password=Surat@8505;warehouse=my_warehouse;database=EMPLOYEEINFODB;schema=EMPLOYEE;role=ACCOUNTADMIN";
-                    //conn.ConnectionString = "account=pz05486.central-india.azure.snowflakecomputing.com;user=HIRENDEVANI;password=Surat@8505;db=EMPLOYEEINFODB;schema=EMPLOYEE;warehouse=my_warehouse;role=ACCOUNTADMIN";
-                    //conn.ConnectionString = "account=EH47344;user=HIRENDEVANI;password=Surat@8505";
+                  
                     conn.ConnectionString = "Host=pz05486.central-india.azure.snowflakecomputing.com;User=hirendevani;Password=Surat@8505;Account=pz05486;Db=EMPLOYEEINFODB;schema=EMPLOYEE;warehouse=my_warehouse;Role=ACCOUNTADMIN";
                    
                     conn.Open();
@@ -28,13 +26,11 @@ namespace CDF_Services.Services.SnowFlakeService
 
                     using (IDbCommand cmd = conn.CreateCommand())
                     {
-                        //  var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
                         var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
 
                         cmd.CommandText = "USE WAREHOUSE my_warehouse";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = query;  // sql opertion fetching 
-                                                  //data from an existing table
+                        cmd.CommandText = query;  
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
