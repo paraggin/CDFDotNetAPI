@@ -24,13 +24,41 @@ namespace CDF_WebApi.Controllers.BolbStorage
        
         [HttpPost]
         [Route("uploadBlob_Identity")]
-        public async Task<IActionResult> uploadBlob_Identity()
+        public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
         {
-            return await _BlobStorageService.uploadBlobTest();
+            return await _BlobStorageService.uploadDynamicBlobTest(file);
 
         }
 
         [HttpPost]
+        [Route("downloadBlob_Identity")]
+        public async Task<IActionResult> downloadBlob_Identity(string prefix)
+        {
+            return await _BlobStorageService.downloadBlobTest(prefix);
+
+        }
+
+        [HttpGet]
+        [Route("ListBlobs_Identity")]
+        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
+        {
+            return await _BlobStorageService.FilterBlobs((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
+
+        }
+
+
+        [HttpGet]
+        [Route("getBLobSAS_Identity")]
+        public async Task<IActionResult> getBLobSASIdentity(string BlobName)
+        {
+
+            return await _BlobStorageService.getBLobSASIdentity(BlobName);
+
+        }
+
+     
+
+      /*  [HttpPost]
         [Route("uploadDynamicBlob_Identity")]
         public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
         {
@@ -56,13 +84,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
         
         }
 
-        [HttpPost]
-        [Route("downloadBlob_Identity")]
-        public async Task<IActionResult> downloadBlob_Identity(string prefix)
-        {
-            return await _BlobStorageService.downloadBlobTest(prefix);
-
-        }
+     
 
         [HttpGet]
         [Route("getBLobSAS")]
@@ -73,22 +95,6 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-        [HttpGet]
-        [Route("getBLobSASIdentity")]
-        public async Task<IActionResult> getBLobSASIdentity(string BlobName)
-        {
-
-            return await _BlobStorageService.getBLobSASIdentity(BlobName);
-
-        }
-
-        [HttpGet]
-        [Route("ListBlobsv2")]
-        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1,  string? period = null, string? reportingUnit = null, string? filename = null,string? containerName= "")
-        {
-            return await _BlobStorageService.FilterBlobs((int)pageSize,(int) pageNumber, period, reportingUnit, filename, containerName);
-
-        }
 
         [HttpGet]
         [Route("ListBlobsv3")]
@@ -111,7 +117,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
         {
             return    await _BlobStorageService.uploadBlobMultiple(file, numberOfUploads, containerName); 
         }         
-
+*/
 
     }
 }

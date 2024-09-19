@@ -297,7 +297,7 @@ namespace CDF_Services.Services.BlobStorageService
                         var fileName = Path.GetFileName(file.FileName);
                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
 
-                        string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+                        string containerEndpoint = _configuration["AzureBlobStorage:ContainerEndpoint"];
 
                         // Get a credential and create a client object for the blob container.
                         BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
