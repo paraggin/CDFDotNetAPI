@@ -521,7 +521,9 @@ namespace CDF_Services.Services.BlobStorageService
                 string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
                 sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
 
-                return new JsonResult(new { blobSASUrl = sasUrl });
+               // return new JsonResult(new { blobSASUrl = sasUrl });
+                return new JsonResult(new { StatusCode = 200, Url = sasUrl });
+
 
             }
             catch (Exception ex)
