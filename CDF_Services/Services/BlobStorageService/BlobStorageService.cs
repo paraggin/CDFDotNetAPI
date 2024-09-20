@@ -493,6 +493,45 @@ namespace CDF_Services.Services.BlobStorageService
           
         }
 
+      public  async Task<IActionResult> getBlobSasUrl_Dynamic(string accountName, string containerName, string blobName)
+        {
+            string sasUrl = "";
+            try
+            {            
+
+                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
+                {
+                    BlobContainerName = blobContainerClient.Name,
+                    BlobName = blobClient.Name,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "b"
+                };
+
+                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                return new JsonResult(new { blobSASUrl = sasUrl });
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { StatusCode = 400, Message = ex.Message, blobSASUrl = sasUrl });
+
+            }
+
+        }
+
         async Task<string> getBLOBSasUrlForJsonFormat(string blobName)
         {
             string sasUrl = "";

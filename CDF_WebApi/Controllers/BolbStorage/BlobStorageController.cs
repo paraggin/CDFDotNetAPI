@@ -1,4 +1,5 @@
 ﻿using CDF_Services.IServices.IBlobStorageService;
+using CDF_Services.Services.BlobStorageService;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,15 @@ namespace CDF_WebApi.Controllers.BolbStorage
         }
 
         [HttpGet]
+        [Route("getBLobSasUrl_Dynamic")]
+        public async Task<IActionResult> getBLobSasUrl(string storageAccountName, string containerName, string blobName)
+        {
+
+            return await _BlobStorageService.getBlobSasUrl_Dynamic(storageAccountName, containerName, blobName);
+
+        }
+
+        [HttpGet]
         [Route("getJsonFromBlob")]
         public async Task<IActionResult> getJsonFromBlob(string BlobName)
         {
@@ -88,7 +98,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
             var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
             return jsonResult;
         }
-        [HttpGet("Convert-From-Url")]
+       /* [HttpGet("Convert-From-Url")]
         public async Task<IActionResult> ConvertFromUrl()
         {
 
@@ -115,9 +125,9 @@ namespace CDF_WebApi.Controllers.BolbStorage
             {
                 return BadRequest($"Error downloading file: {ex.Message}");
             }
-        }
+        }*/
 
-        [HttpPost("convert-from-text")]
+      /*  [HttpPost("convert-from-text")]
         public IActionResult ConvertFromText(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -144,7 +154,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
             {
                 return StatusCode(500, "Internal server error");
             }
-        }
+        }*/
 
 
 
