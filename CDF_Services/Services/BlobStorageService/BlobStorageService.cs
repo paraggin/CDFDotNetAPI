@@ -595,6 +595,39 @@ namespace CDF_Services.Services.BlobStorageService
             
         }
 
+        private string ProcessCSVStream(Stream stream)
+        {
+            try
+            {
+                // Register encoding provider
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                DataSet excelData;
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                {
+                    // Convert to DataSet with headers from the first row
+                    var conf = new ExcelDataSetConfiguration
+                    {
+                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                        {
+                            UseHeaderRow = true
+                        }
+                    };
+
+                    excelData = reader.AsDataSet(conf);
+                }
+
+                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
+                return jsonResult;
+
+            }
+            catch (Exception ex)
+            {
+                return "Failed";
+            }
+
+        }
+
         private string ProcessExcelStream(Stream stream)
         {
             try
@@ -644,7 +677,7 @@ namespace CDF_Services.Services.BlobStorageService
                     var extension = Path.GetExtension(url.Split("?")[0]).ToLower(); 
 
 
-                    if(extension == ".xlsx" || extension == ".xls" || extension == ".csv")
+                    if(extension == ".xlsx" || extension == ".xls")
                     {
                         using (HttpClient client = new HttpClient())
                         {
@@ -659,6 +692,25 @@ namespace CDF_Services.Services.BlobStorageService
                             using (var stream = await response.Content.ReadAsStreamAsync())
                             {
                                 return ProcessExcelStream(stream);
+
+                            }
+                        }
+                    }
+                    else if (extension == ".csv")
+                    {
+                        using (HttpClient client = new HttpClient())
+                        {
+
+                            var response = await client.GetAsync(url);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return "Failed";
+
+                            }
+
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                return ProcessCSVStream(stream);
 
                             }
                         }
