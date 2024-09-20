@@ -9,6 +9,8 @@ namespace CDF_Services.IServices.IBlobStorageService
         
         Task<IActionResult> getBLobSAS(string BlobName);
 
+        Task<string> ConvertToJsonFromUrl(string fileName);
+
         Task<IActionResult> getBLobSASIdentity(string BlobName);
 
         Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename,string containerName);

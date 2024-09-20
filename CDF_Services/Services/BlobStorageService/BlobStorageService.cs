@@ -23,7 +23,13 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
-
+using System.Security.Policy;
+using Newtonsoft.Json;
+using ExcelDataReader;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System;
+using static Microsoft.AspNetCore.WebSockets.Internal.Constants;
 
 namespace CDF_Services.Services.BlobStorageService
 {
@@ -448,59 +454,229 @@ namespace CDF_Services.Services.BlobStorageService
 
         }
 
-
-        public async Task<IActionResult> getBLobSASIdentity(string blobName)
+         async Task<String> getBLOBSasUrl(string blobName)
         {
-            string accountName = _configuration["AzureBlobStorage:AccountName"];
-            string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
-
-            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            string sasUrl = "";
+            try
             {
-                try
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+                string containerName = _configuration["AzureBlobStorage:ContainerName"];
+
+                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
                 {
-                    // Create a BlobServiceClient to interact with the Blob service.
-                    BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                    BlobContainerName = blobContainerClient.Name,
+                    BlobName = blobClient.Name,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "b"
+                };
 
-                    // Get the BlobContainerClient for the specific container.
-                    BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient("container-poc");
+                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
 
-                    // Get the BlobClient for the specific blob.
-                    BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
 
-                    // Define the SAS token parameters.
-                    BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
-                    {
-                        BlobContainerName = blobContainerClient.Name,
-                        BlobName = blobClient.Name,
-                        ExpiresOn = DateTime.UtcNow.AddMinutes(15),
-                        Protocol = SasProtocol.Https,
-                        Resource = "b"  // 'b' indicates Blob-level resource in the container
-                    };
+                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
 
-                    // Set the permissions for the SAS token.
-                    blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+                return sasUrl;
+            }
+            catch (Exception ex)
+            {
+                return sasUrl;
+            }
+          
+        }
 
-                    // Get the User Delegation Key.
-                    UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+        async Task<string> getBLOBSasUrlForJsonFormat(string blobName)
+        {
+            string sasUrl = "";
+            int statusCode = 200; // Default to 200 OK
+            try
+            {
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+                string containerName = _configuration["AzureBlobStorage:ContainerName"];
 
-                    // Generate the SAS token using the User Delegation Key.
-                    string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
-                    string sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
 
-                    // Log the SAS URL.
-                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
-                    writer.WriteLine(sasUrl);
-
-                    return new JsonResult(new { blobSasUrl = sasUrl });
-                }
-                catch (Exception e)
+                // Check if the blob exists
+                if (!await blobClient.ExistsAsync())
                 {
-                    writer.WriteLine("Error :" + e.ToString());
-                    return new JsonResult(new { StatusCode = 400, Message = "Error :" + e.ToString() });
+                    statusCode = 400; // Blob not found
+                    return statusCode.ToString();
                 }
+
+                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
+                {
+                    BlobContainerName = blobContainerClient.Name,
+                    BlobName = blobClient.Name,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "b"
+                };
+
+                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                return sasUrl;
+            }
+            catch (Exception ex)
+            {
+                statusCode = 400;
+                return statusCode.ToString();
             }
         }
 
+        public async Task<IActionResult> getBLobSASIdentity(string blobName)
+        {
+
+           
+                try
+                {
+
+                    string sasUrl = await getBLOBSasUrl(blobName);                                  
+
+                   return new JsonResult(new { StatusCode = 200, blobSasUrl = sasUrl });
+                }
+                catch (Exception e)
+                {
+                    return new JsonResult(new { StatusCode = 400, Message = "Error :" + e.ToString() });
+                }
+            
+        }
+
+        private string ProcessExcelStream(Stream stream)
+        {
+            try
+            {
+                // Register encoding provider
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                DataSet excelData;
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    // Convert to DataSet with headers from the first row
+                    var conf = new ExcelDataSetConfiguration
+                    {
+                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                        {
+                            UseHeaderRow = true
+                        }
+                    };
+
+                    excelData = reader.AsDataSet(conf);
+                }
+
+                // Convert DataSet to JSON
+                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
+                return jsonResult;
+
+            }
+            catch (Exception ex)
+            {
+                return "Failed";
+            }
+ 
+        }
+        public async Task<string> ConvertToJsonFromUrl(string fileName)
+        {
+            try
+            {
+
+                string url = await getBLOBSasUrlForJsonFormat(fileName);
+                if(url == "400")
+                {
+                    return "File Not Found";
+                }
+
+                if(url != "") {
+
+                    var extension = Path.GetExtension(url.Split("?")[0]).ToLower(); 
+
+
+                    if(extension == ".xlsx" || extension == ".xls" || extension == ".csv")
+                    {
+                        using (HttpClient client = new HttpClient())
+                        {
+
+                            var response = await client.GetAsync(url);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return "Failed";
+
+                            }
+
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                return ProcessExcelStream(stream);
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return await textToJson(url);
+
+                    }
+
+
+                }
+                else
+                {
+                    return "Failed";
+                }
+
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return "Failed";
+            }
+        }
+
+        private async  Task<string> textToJson(string url)
+        {
+            
+            try
+            {
+
+                var headers = string.Empty;
+                using (var httpClient = new HttpClient())
+                {
+                    // Fetch the content from the URL
+                    var response = await httpClient.GetAsync(url);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return "Failed";
+                    }
+
+                    var content = await response.Content.ReadAsStringAsync();
+
+                   
+                    using (var reader = new StringReader(content))
+                    {
+                        headers = reader.ReadToEnd();
+
+                    }
+                }
+                var jsonResult = headers;
+                return jsonResult;            }
+            catch (Exception ex)
+            {
+                return "Failed";
+            }
+        }
 
 
         public async Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
