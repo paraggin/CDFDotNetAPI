@@ -472,6 +472,7 @@ namespace CDF_Services.Services.BlobStorageService
                 {
                     BlobContainerName = blobContainerClient.Name,
                     BlobName = blobClient.Name,
+                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
                     ExpiresOn = DateTime.UtcNow.AddMinutes(15),
                     Protocol = SasProtocol.Https,
                     Resource = "b"
@@ -509,6 +510,7 @@ namespace CDF_Services.Services.BlobStorageService
                 {
                     BlobContainerName = blobContainerClient.Name,
                     BlobName = blobClient.Name,
+                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
                     ExpiresOn = DateTime.UtcNow.AddMinutes(15),
                     Protocol = SasProtocol.Https,
                     Resource = "b"

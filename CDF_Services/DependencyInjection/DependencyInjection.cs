@@ -45,13 +45,16 @@ namespace CDF_Services.DependencyInjection
 
             #region Blob storage
             services.AddScoped<IBlobStorageService, BlobStorageService>();
+            services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
+            services.AddScoped<IBlobByStorageAcService, BlobByStorageAcService>();
+
             #endregion
 
             #region Auth
             services.AddScoped<IAuthService, AuthService>();
             #endregion
 
-            services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
+           
 
             #region Email
             services.AddScoped<IEmailGun, EmailGun>();

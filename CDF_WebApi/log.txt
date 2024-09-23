@@ -808,3 +808,7 @@ Identity Error :Azure.Identity.CredentialUnavailableException: DefaultAzureCrede
    at CDF_Services.Services.BlobStorageService.BlobStorageService.uploadDynamicBlobTest(IFormFile file) in E:\Vera Multitab Usibng TeamsToolkit-React\CDFDotNetAPI\CDF_Services\Services\BlobStorageService\BlobStorageService.cs:line 249
 ---------------21-08-2024 12:22:13 PM---------------
 https://blobpoc02.blob.core.windows.net/container-poc/5435?sv=2023-11-03&spr=https&se=2024-08-21T07%3A07%3A13Z&sr=b&sp=racwdxyltmei&sig=WTRfgAyBSRqsr3xJqhyKQGopRhGTKN2F6TeXRlTJ9fU%3D
+---------------11-09-2024 04:35:24 PM---------------
+Q : 
+---------------20-09-2024 10:26:31 AM---------------
+Q : 

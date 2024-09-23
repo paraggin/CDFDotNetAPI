@@ -22,10 +22,12 @@ namespace CDF_Services.Services.BlobStorageService
         }
         public async Task<IActionResult> GenerateBlobSASUrl(string storageAccountName, string containerName, string blobName)
         {
-            string storageAccountKey = "";
-            var sasToken = "";
+           
             try
             {
+
+                string storageAccountKey = "";
+                var sasToken = "";
 
                 string keyVaultUri = _configuration["KeyVault:KeyVaultURI"];
                 string storageAccountKeySecretNameTemplate = _configuration["KeyVault:AccountKeySecretNameTemplate"];
@@ -65,11 +67,12 @@ namespace CDF_Services.Services.BlobStorageService
                 BlobContainerName = containerClient.Name,
                 BlobName = blobClient.Name,
                 Resource = "b", // "b" for blob, "c" for container
+                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
                 ExpiresOn = DateTimeOffset.UtcNow.AddHours(1) // SAS token valid for 1 hour
             };
 
             // Set the permissions for the SAS token (e.g., read permission)
-            sasBuilder.SetPermissions(BlobSasPermissions.Read);
+            sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
 
             // Generate the SAS token using the shared key credential
             string sasToken = sasBuilder.ToSasQueryParameters(storageCredentials).ToString();
