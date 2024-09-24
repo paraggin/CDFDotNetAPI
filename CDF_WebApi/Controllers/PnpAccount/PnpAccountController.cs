@@ -1,4 +1,4 @@
-﻿using CDF_Core.Entities.PNP_Accounts;
+﻿/*using CDF_Core.Entities.PNP_Accounts;
 using CDF_Services.IServices.IPnpAccountServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,4 +26,4 @@ namespace CDF_WebApi.Controllers.PnpAccount
             return _PnpAccountServices.GetAccountByPolicy(policy);
         }
     }
-}
+}*/
