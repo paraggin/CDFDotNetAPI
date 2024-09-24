@@ -19,6 +19,8 @@ using CDF_Services.IServices.IHolidayCalendarServices;
 using CDF_Services.Services.HolidayCalendarServices;
 using CDF_Services.IServices.ISnowFlakeService;
 using CDF_Services.Services.SnowFlakeService;
+using CDF_Services.IServices.ILogViewerService;
+using CDF_Services.Services.LogViewerService;
 
 namespace CDF_Services.DependencyInjection
 {
@@ -46,7 +48,7 @@ namespace CDF_Services.DependencyInjection
             #region Blob storage
             services.AddScoped<IBlobStorageService, BlobStorageService>();
             services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
-            services.AddScoped<IBlobByStorageAcService, BlobByStorageAcService>();
+            services.AddScoped<ILogViewerService,LogViewerService>();
 
             #endregion
 

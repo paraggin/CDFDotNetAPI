@@ -1,22 +1,25 @@
-﻿using Azure.Storage.Blobs;
-using Azure.Storage.Sas;
-using Azure.Storage;
-using CDF_Services.IServices.IBlobStorageService;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Azure.Core;
 using Azure.Identity;
-using Azure.Core;
-using Azure.ResourceManager.Storage;
-using Microsoft.Azure.Management.Storage;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager;
 using Azure.Storage.Blobs.Models;
-namespace CDF_Services.Services.BlobStorageService
+using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
+using Azure.Storage;
+using Microsoft.AspNetCore.Mvc;
+using CDF_Services.IServices.ILogViewerService;
+using Microsoft.Extensions.Configuration;
+using Azure.ResourceManager.Storage;
+
+
+namespace CDF_Services.Services.LogViewerService
 {
-    public class BlobByStorageAcService : IBlobByStorageAcService
+    public  class LogViewerService : ILogViewerService
     {
+
         private readonly IConfiguration _configuration;
-        public BlobByStorageAcService(IConfiguration configuration) { 
+        public LogViewerService(IConfiguration configuration)
+        {
             _configuration = configuration;
         }
 
@@ -69,7 +72,7 @@ namespace CDF_Services.Services.BlobStorageService
             }
         }
 
-        public async  Task<IActionResult> GetAllContainerBlob(string storageAccountName,string containerName)
+        public async Task<IActionResult> GetAllContainerBlob(string storageAccountName, string containerName)
         {
             var blobList = new List<object>();
             try
@@ -82,7 +85,8 @@ namespace CDF_Services.Services.BlobStorageService
 
                 await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
                 {
-                    blobList.Add(new { 
+                    blobList.Add(new
+                    {
                         name = blobItem.Name
                         //, properties = blobItem.Properties
                     });
@@ -98,6 +102,41 @@ namespace CDF_Services.Services.BlobStorageService
         }
 
 
+        public async Task<IActionResult> FilterContainerBlob(string storageAccountName, string containerName, string searchText)
+        {
+            var blobList = new List<object>();
+            try
+            {
+                string storageAccountUrl = $"https://{storageAccountName}.blob.core.windows.net";
+
+                var blobServiceClient = new BlobServiceClient(new Uri(storageAccountUrl), new DefaultAzureCredential());
+
+                var blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                await foreach (BlobItem blobItem in blobContainerClient.GetBlobsAsync())
+                {
+                    if (blobItem.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        blobList.Add(new
+                        {
+                            name = blobItem.Name
+                            //, properties = blobItem.Properties
+                        });
+                    }
+
+                }
+
+                return new JsonResult(new { StatusCode = 200, data = blobList });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return new JsonResult(new { StatusCode = 400, message = ex.Message });
+            }
+        }
+
+
+
         public async Task<IActionResult> downloadBlob(string storageAccountName, string containerName, string blobName)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
@@ -107,7 +146,7 @@ namespace CDF_Services.Services.BlobStorageService
                 BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
 
                 BlobClient blobClient = containerClient.GetBlobClient(blobName);
-             
+
 
                 try
                 {
@@ -163,7 +202,7 @@ namespace CDF_Services.Services.BlobStorageService
                 UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
 
                 string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, storageAccountName).ToString();
-                string  sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+                string sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
 
                 return new JsonResult(new { StatusCode = 200, Url = sasUrl });
             }
@@ -174,50 +213,8 @@ namespace CDF_Services.Services.BlobStorageService
             }
 
         }
-            public async Task<IActionResult> GetSASUrl(string accountName, string containerName,string blobName)
-        {
-            try
-            {
-
-                string sasUrl=string.Empty;
-               // string accountName = _configuration["AzureBlobStorage:AccountName"];
-                string accountKey = _configuration[$"AzureBlobStorage:{accountName}"];
-              //  string containerName = _configuration["AzureBlobStorage:ContainerName"];
-
-                var storageSharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
-
-                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), storageSharedKeyCredential);
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
-
-                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
-                {
-                    BlobContainerName = blobContainerClient.Name,
-                    BlobName = blobClient.Name,
-                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-                    ExpiresOn = DateTime.UtcNow.AddHours(24),
-                    Protocol = SasProtocol.Https,
-                    Resource = "b" // 'b' is for Blob
-                };
-
-                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
-
-                string sasToken = blobSasBuilder.ToSasQueryParameters(storageSharedKeyCredential).ToString();
-
-                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
-                return new JsonResult(new { StatusCode = 200, Url = $"{blobClient.Uri}?{sasToken}" });
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error generating SAS URL: {ex.Message}");
-                return new JsonResult(new { StatusCode = 400, Error = ex.Message });
-
-            }
-
-        }
-
-        public async Task<IActionResult> GetBlobSASUrlUsingAcAccessKey(string accountName,string containerName, string blobName)
+      
+        public async Task<IActionResult> GetBlobSASUrlUsingAcAccessKey(string accountName, string containerName, string blobName)
         {
             try
             {
@@ -257,5 +254,6 @@ namespace CDF_Services.Services.BlobStorageService
             }
 
         }
+
     }
 }

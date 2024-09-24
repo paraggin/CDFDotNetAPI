@@ -1,21 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace CDF_Services.IServices.IBlobStorageService
+namespace CDF_Services.IServices.ILogViewerService
 {
-    public interface IBlobByStorageAcService
+    public interface ILogViewerService
     {
-
         Task<IActionResult> GetAllStorageAccounts();
 
         Task<IActionResult> GetAllAccountContainer(string storageAccountName);
 
-        Task<IActionResult> GetAllContainerBlob(string storageAccountName,string containerName);
+        Task<IActionResult> GetAllContainerBlob(string storageAccountName, string containerName);
+
+        Task<IActionResult> FilterContainerBlob(string storageAccountName, string containerName, string searchText);
 
         Task<IActionResult> GetBlobSasUrl(string storageAccountName, string containerName, string blobName);
 
         Task<IActionResult> downloadBlob(string storageAccountName, string containerName, string blobName);
-
-        Task<IActionResult> GetSASUrl(string storageAccountName, string containerName, string blobName);
 
     }
 }
