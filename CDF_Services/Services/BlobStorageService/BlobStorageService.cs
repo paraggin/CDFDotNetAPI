@@ -317,7 +317,7 @@ namespace CDF_Services.Services.BlobStorageService
                         BlobClient blobClient = containerClient.GetBlobClient(fileName);
                         string contentType = GetContentType(fileExtension);
                         using Stream stream = file.OpenReadStream();
-                        blobClient.Upload(stream);
+                        blobClient.Upload(stream,overwrite :true);
                         await blobClient.SetAccessTierAsync(AccessTier.Hot);
                         await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
 
