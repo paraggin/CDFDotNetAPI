@@ -246,7 +246,11 @@ namespace CDF_Services.Services.BlobStorageService
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-                string containerEndpoint = _configuration["AzureBlobStorageStefano:ContainerEndpoint"];
+                string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+
+                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
+
 
                 BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
 
@@ -286,7 +290,7 @@ namespace CDF_Services.Services.BlobStorageService
 
             try
             {
-                string connectionString = _configuration["AzureBlobStorageStefano:ConnectionString"];
+              //  string connectionString = _configuration["AzureBlobStorageStefano:ConnectionString"];
                 string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
 
 
