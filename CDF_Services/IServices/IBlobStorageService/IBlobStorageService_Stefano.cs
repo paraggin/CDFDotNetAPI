@@ -14,7 +14,7 @@ namespace CDF_Services.IServices.IBlobStorageService
 
         Task<IActionResult> downloadBlob(string name);
 
-        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
+        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber);
 
         Task<string> ConvertToJsonFromUrl(string fileName);
 
