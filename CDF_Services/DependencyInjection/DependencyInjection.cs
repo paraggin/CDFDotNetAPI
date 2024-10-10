@@ -49,6 +49,7 @@ namespace CDF_Services.DependencyInjection
             services.AddScoped<IBlobStorageService, BlobStorageService>();
             services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
             services.AddScoped<ILogViewerService,LogViewerService>();
+            services.AddScoped<IBlobStorageService_Stefano, BlobStorageService_Stefano>();
 
             #endregion
 

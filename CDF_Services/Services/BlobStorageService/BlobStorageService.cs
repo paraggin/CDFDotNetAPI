@@ -198,25 +198,18 @@ namespace CDF_Services.Services.BlobStorageService
         public async Task<IActionResult> downloadBlobTest(string prefix)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+
             {
-                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+                string containerName = _configuration["AzureBlobStorage:ContainerName"];
+
+                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
 
             BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
 
             BlobClient blobClient = containerClient.GetBlobClient(prefix);
 
-             /*   try
-                {
-                    BlobDownloadResult downloadResult = await blobClient.DownloadContentAsync();
-                    string blobContents = downloadResult.Content.ToString();
-                    writer.WriteLine("Download : " + blobContents);
-
-                }
-                catch (Exception ex) {
-                    writer.WriteLine("Download Error 1  : " + ex.Message);
-                }
-
-*/
+          
 
                 try
                 {
@@ -252,7 +245,11 @@ namespace CDF_Services.Services.BlobStorageService
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
                 string blobContents = "Testing identity";
-                string containerEndpoint = "https://blobpoc02.blob.core.windows.net/container-poc/";
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+                string containerName = _configuration["AzureBlobStorage:ContainerName"];
+
+
+                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
 
                 // Get a credential and create a client object for the blob container.
                 BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
@@ -298,7 +295,7 @@ namespace CDF_Services.Services.BlobStorageService
                 {
                     if (file.Length > 0)
                     {
-                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+                       // string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
                         var fileName = Path.GetFileName(file.FileName);
                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
@@ -781,11 +778,13 @@ namespace CDF_Services.Services.BlobStorageService
             {
                 string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
+                string storageAccount = _configuration["AzureBlobStorage:AccountName"];
+
                 // var serviceClient = new BlobServiceClient(connectionString);
 
 
                 var credential = new DefaultAzureCredential();
-                var serviceClient = new BlobServiceClient(new Uri("https://blobpoc02.blob.core.windows.net"), credential);
+                var serviceClient = new BlobServiceClient(new Uri($"https://{storageAccount}.blob.core.windows.net"), credential);
 
 
 
