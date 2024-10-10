@@ -305,8 +305,10 @@ namespace CDF_Services.Services.BlobStorageService
                 {
                     totalCount++;
                     BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
-                    GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
-                    blobTags.Add(new { name = blob.Name, tags = blobProperties.Tags });
+                    // GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                    // blobTags.Add(new { name = blob.Name, tags = blobProperties.Tags });
+                    blobTags.Add(new { name = blob.Name });
+
                 }
 
                 return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
