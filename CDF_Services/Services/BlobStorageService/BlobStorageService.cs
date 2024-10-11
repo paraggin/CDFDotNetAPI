@@ -316,7 +316,7 @@ namespace CDF_Services.Services.BlobStorageService
                         using Stream stream = file.OpenReadStream();
                         blobClient.Upload(stream,overwrite :true);
                       //  await blobClient.SetAccessTierAsync(AccessTier.Hot);
-                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+                       await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
 
 
                         IDictionary<string, string> tags = new Dictionary<string, string>
@@ -348,14 +348,25 @@ namespace CDF_Services.Services.BlobStorageService
         {
             switch (fileExtension)
             {
-                case ".docx":
-                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".txt":
+                    return "text/plain";
                 case ".pdf":
                     return "application/pdf";
+                case ".jpg":
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".png":
+                    return "image/png";
+                case ".doc":
+                    return "application/msword";
+                case ".docx":
+                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".xls":
+                    return "application/vnd.ms-excel";
                 case ".xlsx":
                     return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                 default:
-                    return "application/octet-stream";
+                    return "application/octet-stream"; // Default for unknown types
             }
         }
         public async Task<IActionResult> uploadBlob(IFormFile file, string containerName)
