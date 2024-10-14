@@ -326,15 +326,175 @@ namespace CDF_Services.Services.BlobStorageService
         {
             switch (fileExtension)
             {
-                case ".docx":
-                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                // Text formats
+                case ".txt":
+                    return "text/plain";
+                case ".csv":
+                    return "text/csv";
+                case ".html":
+                case ".htm":
+                    return "text/html";
+                case ".css":
+                    return "text/css";
+                case ".json":
+                    return "application/json";
+                case ".xml":
+                    return "application/xml";
+
+                // Image formats
+                case ".jpg":
+                case ".jpeg":
+                    return "image/jpeg";
+                case ".png":
+                    return "image/png";
+                case ".gif":
+                    return "image/gif";
+                case ".bmp":
+                    return "image/bmp";
+                case ".tiff":
+                case ".tif":
+                    return "image/tiff";
+                case ".svg":
+                    return "image/svg+xml";
+                case ".ico":
+                    return "image/x-icon";
+
+                // Document formats
                 case ".pdf":
                     return "application/pdf";
+                case ".doc":
+                    return "application/msword";
+                case ".docx":
+                    return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                case ".ppt":
+                    return "application/vnd.ms-powerpoint";
+                case ".pptx":
+                    return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+                case ".xls":
+                    return "application/vnd.ms-excel";
                 case ".xlsx":
                     return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-                default:
+                case ".rtf":
+                    return "application/rtf";
+
+                // Compressed formats
+                case ".zip":
+                    return "application/zip";
+                case ".rar":
+                    return "application/vnd.rar";
+                case ".7z":
+                    return "application/x-7z-compressed";
+                case ".tar":
+                    return "application/x-tar";
+                case ".gz":
+                    return "application/gzip";
+
+                // Audio formats
+                case ".mp3":
+                    return "audio/mpeg";
+                case ".wav":
+                    return "audio/wav";
+                case ".ogg":
+                    return "audio/ogg";
+                case ".m4a":
+                    return "audio/x-m4a";
+                case ".flac":
+                    return "audio/flac";
+
+                // Video formats
+                case ".mp4":
+                    return "video/mp4";
+                case ".avi":
+                    return "video/x-msvideo";
+                case ".mov":
+                    return "video/quicktime";
+                case ".wmv":
+                    return "video/x-ms-wmv";
+                case ".mkv":
+                    return "video/x-matroska";
+                case ".webm":
+                    return "video/webm";
+
+                // Font formats
+                case ".ttf":
+                    return "font/ttf";
+                case ".otf":
+                    return "font/otf";
+                case ".woff":
+                    return "font/woff";
+                case ".woff2":
+                    return "font/woff2";
+
+                // Binary formats
+                case ".exe":
                     return "application/octet-stream";
+                case ".dll":
+                    return "application/octet-stream";
+                case ".bin":
+                    return "application/octet-stream";
+
+                // Others
+                case ".eot":
+                    return "application/vnd.ms-fontobject";
+                case ".swf":
+                    return "application/x-shockwave-flash";
+
+                // Default
+                default:
+                    return "application/octet-stream"; // Default for unknown types
             }
+        }
+
+        public async Task<IActionResult> DeleteBlob(string fileName)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "File name cannot be null or empty." });
+                    }
+
+                     string ContainerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+
+                     string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                     string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
+
+
+                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                   new DefaultAzureCredential());
+
+                    if (!await containerClient.ExistsAsync())
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                    }
+
+                    // Get a reference to the blob
+                    BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+                    // Delete the blob if it exists
+                    var deleteResponse = await blobClient.DeleteIfExistsAsync();
+
+                    if (deleteResponse.Value)
+                    {
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.WriteLine($"Blob {fileName} deleted successfully.");
+                    }
+                    else
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Blob not found or already deleted." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
         }
 
 

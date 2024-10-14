@@ -12,6 +12,8 @@ namespace CDF_Services.IServices.IBlobStorageService
     {
         Task<IActionResult> uploadBlob(IFormFile file);
 
+        Task<IActionResult> DeleteBlob(string fileName);
+
         Task<IActionResult> downloadBlob(string name);
 
         Task<IActionResult> FilterBlobs(int pageSize, int pageNumber);

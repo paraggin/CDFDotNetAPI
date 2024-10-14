@@ -8,11 +8,11 @@ namespace CDF_WebApi.Controllers.BolbStorage
     [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
-    public class BlobController_StefanoController : ControllerBase
+    public class BlobControllerController : ControllerBase
     {
         private readonly IBlobStorageService_Stefano _BlobStorageService;
        
-        public BlobController_StefanoController(IBlobStorageService_Stefano BlobStorageService) {
+        public BlobControllerController(IBlobStorageService_Stefano BlobStorageService) {
             _BlobStorageService = BlobStorageService;   
         }
 
@@ -25,11 +25,19 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-        [HttpPost]
+        [HttpGet]
         [Route("downloadBlob_Identity")]
-        public async Task<IActionResult> downloadBlob_Identity(string prefix)
+        public async Task<IActionResult> downloadBlob_Identity(string name)
         {
-            return await _BlobStorageService.downloadBlob(prefix);
+            return await _BlobStorageService.downloadBlob(name);
+
+        }
+
+        [HttpGet]
+        [Route("deleteBlob")]
+        public async Task<IActionResult> deleteBlob(string blobName)
+        {
+            return await _BlobStorageService.DeleteBlob(blobName);
 
         }
 
