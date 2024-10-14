@@ -6,8 +6,10 @@ namespace CDF_Services.IServices.IBlobStorageService
 {
     public interface IBlobStorageService
     {
-        
+
         Task<IActionResult> getBLobSAS(string BlobName);
+
+        Task<IActionResult> DeleteBlob(string fileName);
 
         Task<string> ConvertToJsonFromUrl(string fileName);
 

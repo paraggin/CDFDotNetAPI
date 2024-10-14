@@ -286,6 +286,52 @@ namespace CDF_Services.Services.BlobStorageService
 
         }
 
+        public async Task<IActionResult> DeleteBlob(string fileName)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "File name cannot be null or empty." });
+                    }
+                    string ContainerName = _configuration["AzureBlobStorage:ContainerName"];
+
+                    string storageAccountName = _configuration["AzureBlobStorage:AccountName"];
+                    string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
+
+                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
+
+                    if (!await containerClient.ExistsAsync())
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                    }
+
+                    BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+                    var deleteResponse = await blobClient.DeleteIfExistsAsync();
+
+                    if (deleteResponse.Value)
+                    {
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.WriteLine($"Blob {fileName} deleted successfully.");
+                    }
+                    else
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Blob not found or already deleted." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
+        }
         public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
         {
       
@@ -689,11 +735,9 @@ namespace CDF_Services.Services.BlobStorageService
 
         public async Task<IActionResult> getBLobSASIdentity(string blobName)
         {
-
-           
+                       
                 try
                 {
-
                     string sasUrl = await getBLOBSasUrl(blobName);                                  
 
                    return new JsonResult(new { StatusCode = 200, blobSasUrl = sasUrl });
@@ -885,24 +929,15 @@ namespace CDF_Services.Services.BlobStorageService
 
             try
             {
-                string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
                 string storageAccount = _configuration["AzureBlobStorage:AccountName"];
-
-                // var serviceClient = new BlobServiceClient(connectionString);
-
 
                 var credential = new DefaultAzureCredential();
                 var serviceClient = new BlobServiceClient(new Uri($"https://{storageAccount}.blob.core.windows.net"), credential);
 
-
-
-                containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
+                containerName = _configuration["AzureBlobStorage:ContainerName"];
                 BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
                 int totalCount = 0;
-
-
-                // period = string.IsNullOrEmpty(period) ? DateTime.Now.ToString("MM-yyyy") : period;
 
                 string query = "";
                 string startdate = "";

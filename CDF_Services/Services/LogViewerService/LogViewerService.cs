@@ -72,6 +72,61 @@ namespace CDF_Services.Services.LogViewerService
             }
         }
 
+        public async Task<IActionResult> DeleteBlob(string storageAccountName,string ContainerName, string fileName)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(fileName))
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "File name cannot be null or empty." });
+                    }
+                  //  
+                   // string ContainerName = _configuration["AzureBlobStorage:ContainerName"];
+
+                  //  string storageAccountName = _configuration["AzureBlobStorage:AccountName"];
+                    //  string containerEndpoint = _configuration["AzureBlobStorage:ContainerEndpoint"];
+                    string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
+
+
+                    // Get a credential and create a client object for the blob container.
+                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                   new DefaultAzureCredential());
+
+                    // Check if the container exists
+                    if (!await containerClient.ExistsAsync())
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                    }
+
+                    // Get a reference to the blob
+                    BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+                    // Delete the blob if it exists
+                    var deleteResponse = await blobClient.DeleteIfExistsAsync();
+
+                    if (deleteResponse.Value)
+                    {
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.WriteLine($"Blob {fileName} deleted successfully.");
+                    }
+                    else
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "Blob not found or already deleted." });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
+        }
+
         public async Task<IActionResult> GetAllContainerBlob(string storageAccountName, string containerName)
         {
             var blobList = new List<object>();

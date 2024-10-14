@@ -246,41 +246,45 @@ namespace CDF_Services.Services.BlobStorageService
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-                string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
-
-                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
-
-
-                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
-
-                BlobClient blobClient = containerClient.GetBlobClient(name);               
-
                 try
                 {
-                    using (var stream = new MemoryStream())
+                    string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                    string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+
+                    string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
+
+
+                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
+
+                    BlobClient blobClient = containerClient.GetBlobClient(name);
+
+                    try
                     {
-                        await blobClient.DownloadToAsync(stream);
-                        stream.Position = 0;
-
-                        var contentType = (await blobClient.GetPropertiesAsync()).Value.ContentType;
-
-                        return new FileContentResult(stream.ToArray(), contentType)
+                        using (var stream = new MemoryStream())
                         {
-                            FileDownloadName = blobClient.Name
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    writer.WriteLine("Download Error   : " + ex.Message);
-                }
-                var stream1 = new MemoryStream();
+                            await blobClient.DownloadToAsync(stream);
+                            stream.Position = 0;
 
-                return new FileContentResult(stream1.ToArray(), "")
-                {
-                    FileDownloadName = blobClient.Name
-                };
+                            var contentType = (await blobClient.GetPropertiesAsync()).Value.ContentType;
+
+                            return new FileContentResult(stream.ToArray(), contentType)
+                            {
+                                FileDownloadName = blobClient.Name
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        writer.WriteLine("Download Error   : " + ex.Message);
+                        return new JsonResult(new { Status = 400, Message = ex.ToString() });
+
+                    }
+                   
+
+                }
+                catch (Exception e) {
+                    return new JsonResult(new { Status = 400, Message = e.ToString() });
+                }
 
             }
         }

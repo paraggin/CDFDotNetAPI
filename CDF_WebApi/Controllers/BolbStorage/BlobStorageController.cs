@@ -41,6 +41,15 @@ namespace CDF_WebApi.Controllers.BolbStorage
         }
 
         [HttpGet]
+        [Route("deleteBlob")]
+        public async Task<IActionResult> deleteBlob(string blobName)
+        {
+            return await _BlobStorageService.DeleteBlob(blobName);
+
+        }
+
+
+        [HttpGet]
         [Route("ListBlobs_Identity")]
         public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
         {

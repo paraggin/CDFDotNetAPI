@@ -72,6 +72,16 @@ namespace CDF_WebApi.Controllers.LogViewer
 
         return await _logviewerService.downloadBlob(storageAccountName, containerName, blobName);
 
-    }   
+    }
+
+
+        [HttpGet]
+        [Route("deleteBlob")]
+        public async Task<IActionResult> deleteBlob(string storageAccountName, string containerName, string blobName)
+        {
+
+            return await _logviewerService.DeleteBlob(storageAccountName, containerName, blobName);
+
         }
+    }
 }
