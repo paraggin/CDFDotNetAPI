@@ -16,5 +16,7 @@ namespace CDF_Services.IServices.ILogViewerService
 
         Task<IActionResult> downloadBlob(string storageAccountName, string containerName, string blobName);
 
+        Task<IActionResult> DeleteBlob(string storageAccountName, string containerName, string blobName);
+
     }
 }

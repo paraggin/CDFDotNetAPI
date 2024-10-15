@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Data;
 using Microsoft.Extensions.Configuration;
+using Azure.Storage.Files.DataLake;
+using CsvHelper;
 using System.Globalization;
-using Azure;
 
 namespace CDF_Services.Services.BlobStorageService
 {
@@ -23,7 +24,7 @@ namespace CDF_Services.Services.BlobStorageService
          
             _configuration = configuration;
         }
-        private string ProcessCSVStream(Stream stream)
+        private string ProcessCSVStream1(Stream stream)
         {
             try
             {
@@ -49,9 +50,48 @@ namespace CDF_Services.Services.BlobStorageService
             }
             catch (Exception ex)
             {
-                return "Failed";
+                return $"Failed 3 : {ex.ToString()}";
             }
 
+        }
+        private async Task<string> ProcessCSVStream(Stream stream)
+        {
+            try
+            {
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                using (var reader = new StreamReader(stream))
+                {
+                    var csvData = new List<Dictionary<string, string>>();
+                    var header = await reader.ReadLineAsync(); // Read the header line
+                    var headers = header.Split(',');
+
+                    while (!reader.EndOfStream)
+                    {
+                        var line = await reader.ReadLineAsync();
+                        if (line == null) continue;
+
+                        var values = line.Split(',');
+                        var rowData = new Dictionary<string, string>();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            rowData[headers[i]] = values.Length > i ? values[i] : null;
+                        }
+                        csvData.Add(rowData);
+
+                        // Optionally: Process each row immediately to free memory
+                        // ProcessRow(rowData);
+                    }
+
+                    // Convert the whole list to JSON only if necessary
+                    var jsonResult = JsonConvert.SerializeObject(csvData, Formatting.Indented);
+                    return jsonResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Failed 3 : {ex.ToString()}";
+            }
         }
 
         private string ProcessExcelStream(Stream stream)
@@ -81,7 +121,7 @@ namespace CDF_Services.Services.BlobStorageService
             }
             catch (Exception ex)
             {
-                return "Failed";
+                return $"Failed 4 : {ex.ToString()}";
             }
 
         }
@@ -115,7 +155,7 @@ namespace CDF_Services.Services.BlobStorageService
             }
             catch (Exception ex)
             {
-                return "Failed";
+                return $"Failed 5 : {ex.ToString()}";
             }
         }
 
@@ -143,7 +183,7 @@ namespace CDF_Services.Services.BlobStorageService
                 {
                     BlobContainerName = blobContainerClient.Name,
                     BlobName = blobClient.Name,
-                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    ExpiresOn = DateTime.UtcNow.AddHours(24),
                     Protocol = SasProtocol.Https,
                     Resource = "b"
                 };
@@ -164,7 +204,29 @@ namespace CDF_Services.Services.BlobStorageService
             }
         }
 
+        private async Task<string> ProcessCSVStream_CsvHelper(Stream stream)
+        {
+            try
+            {
+                var csvData = new List<dynamic>();
+                using (var reader = new StreamReader(stream))
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                {
+                    while (await csv.ReadAsync())
+                    {
+                        var record = csv.GetRecord<dynamic>();
+                        csvData.Add(record);
+                    }
+                }
 
+                var jsonResult = JsonConvert.SerializeObject(csvData, Formatting.Indented);
+                return jsonResult;
+            }
+            catch (Exception ex)
+            {
+                return $"Failed: {ex}";
+            }
+        }
 
 
         public async  Task<string> ConvertToJsonFromUrl(string fileName)
@@ -172,11 +234,14 @@ namespace CDF_Services.Services.BlobStorageService
             try
             {
 
-                string url = await getBLOBSasUrlForJsonFormat(fileName);
+                //  string url = "https://demohierarchical.blob.core.windows.net/sftp-esker/customers-500000.csv?skoid=fa2099ba-f7dd-4ef2-9b01-8169b911667a&sktid=f9527b8e-12ef-47fc-85aa-443d41b6f525&skt=2024-10-15T10%3A38%3A15Z&ske=2024-10-15T11%3A38%3A15Z&sks=b&skv=2023-11-03&sv=2023-11-03&spr=https&st=2024-10-15T10%3A37%3A15Z&se=2024-10-15T10%3A53%3A15Z&sr=b&sp=rwd&sig=8UqV%2Bax9YqEuwZpdeBYxi4N2tnD8jyKrSOFz5OEc%2F0g%3D";
+                string url =  await getBLOBSasUrlForJsonFormat(fileName);
+                //string url = "https://demohierarchical.blob.core.windows.net/sftp-esker/testpopulation.csv?skoid=fa2099ba-f7dd-4ef2-9b01-8169b911667a&sktid=f9527b8e-12ef-47fc-85aa-443d41b6f525&skt=2024-10-15T10%3A56%3A12Z&ske=2024-10-15T11%3A56%3A12Z&sks=b&skv=2023-11-03&sv=2023-11-03&spr=https&st=2024-10-15T10%3A55%3A12Z&se=2024-10-15T11%3A11%3A12Z&sr=b&sp=rwd&sig=VXxmmsUjy9ylF4%2FpOyMSNjzIqwBqCutmwPgCqtfU8kU%3D";
                 if (url == "400")
                 {
                     return "File Not Found";
                 }
+
 
                 if (url != "")
                 {
@@ -217,7 +282,7 @@ namespace CDF_Services.Services.BlobStorageService
 
                             using (var stream = await response.Content.ReadAsStreamAsync())
                             {
-                                return ProcessCSVStream(stream);
+                                return await ProcessCSVStream_CsvHelper(stream);
 
                             }
                         }
@@ -501,8 +566,68 @@ namespace CDF_Services.Services.BlobStorageService
             return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
         }
 
+        public async Task<IActionResult> uploadBlob(IFormFile file)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                     (sender, cert, chain, sslPolicyErrors) => true; 
 
-        public async  Task<IActionResult> uploadBlob(IFormFile file)
+                    if (file.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileExtension = Path.GetExtension(fileName).ToLower();
+
+                        string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                        string fileSystemName = _configuration["AzureBlobStorageStefano:ContainerName"]; // File system (container) name for Data Lake
+                        string fileSystemEndpoint = $"https://{storageAccountName}.dfs.core.windows.net/{fileSystemName}/";
+
+                        // Create DataLakeFileSystemClient for the file system (container)
+                        DataLakeFileSystemClient fileSystemClient = new DataLakeFileSystemClient(new Uri(fileSystemEndpoint), new DefaultAzureCredential());
+
+                        if (!await fileSystemClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "File system does not exist." });
+                        }
+
+                        // Get a client for the file you want to upload
+                        DataLakeFileClient fileClient = fileSystemClient.GetFileClient(fileName);
+
+                        // Open file stream and upload
+                        using Stream stream = file.OpenReadStream();
+                        await fileClient.UploadAsync(stream, overwrite: true);
+
+                        // Optionally set content type
+                        string contentType = GetContentType(fileExtension);
+                        await fileClient.SetHttpHeadersAsync(new Azure.Storage.Files.DataLake.Models.PathHttpHeaders { ContentType = contentType });
+
+                        // Set metadata or tags (if needed, Data Lake uses metadata, not blob tags)
+                        IDictionary<string, string> metadata = new Dictionary<string, string>
+                    {
+                        { "file", fileName },
+                        { "period", DateTime.Now.ToString("yyyy-MM-dd") }
+                    };
+                        await fileClient.SetMetadataAsync(metadata);
+
+                        var fileUrl = fileClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.Write(fileUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200, Message = "File uploaded successfully." });
+        }
+
+        public async  Task<IActionResult> uploadBlob_BLOB(IFormFile file)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
@@ -514,9 +639,11 @@ namespace CDF_Services.Services.BlobStorageService
                         var fileName = Path.GetFileName(file.FileName);
                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
 
-                        string containerEndpoint = _configuration["AzureBlobStorageStefano:ContainerEndpoint"];
+                        string ContainerName = _configuration["AzureBlobStorageStefano:ContainerName"];
 
-                        // Get a credential and create a client object for the blob container.
+                        string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                        string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
+
                         BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
                                                                                         new DefaultAzureCredential());
 

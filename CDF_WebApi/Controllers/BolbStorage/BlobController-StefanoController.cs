@@ -16,7 +16,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _BlobStorageService = BlobStorageService;   
         }
 
-        [HttpPost]
+        /*[HttpPost]
         [SwaggerOperation(Summary = "AC-CON", Description = "TEST Description")]
         [Route("uploadBlob_Identity")]
         public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
@@ -39,7 +39,7 @@ namespace CDF_WebApi.Controllers.BolbStorage
         {
             return await _BlobStorageService.DeleteBlob(blobName);
 
-        }
+        }*/
 
         [HttpGet]
         [Route("ListBlobs_Identity")]

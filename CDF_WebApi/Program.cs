@@ -10,10 +10,13 @@ using CDF_Services.Mapping;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using CDF_Services.DependencyInjection;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Azure.Management.Storage.Models;
+using CDF_Services.Services.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 
 builder.Services.AddControllers(options =>
 {
@@ -22,6 +25,18 @@ builder.Services.AddControllers(options =>
 
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 builder.Logging.AddConsole();
+builder.Services.AddSignalR(options =>
+{
+    options.ClientTimeoutInterval = TimeSpan.FromMinutes(20);
+    options.HandshakeTimeout = TimeSpan.FromMinutes(20);
+});
+builder.Services.AddHttpClient("ClientWithTimeout")
+       .ConfigureHttpClient(client =>
+       {
+           client.Timeout = TimeSpan.FromMinutes(30); // Set a global timeout of 10 minutes
+       });
+
+builder.Services.AddHostedService<DocLibraryRemoveService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

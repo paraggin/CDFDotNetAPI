@@ -812,3 +812,52 @@ https://blobpoc02.blob.core.windows.net/container-poc/5435?sv=2023-11-03&spr=htt
 Q : 
 ---------------20-09-2024 10:26:31 AM---------------
 Q : 
+---------------02-10-2024 05:42:04 PM---------------
+This request is not authorized to perform this operation using this permission.
+RequestId:e526db30-f01e-0044-1bc4-14a002000000
+Time:2024-10-02T12:12:03.5638277Z
+Status: 403 (This request is not authorized to perform this operation using this permission.)
+ErrorCode: AuthorizationPermissionMismatch
+
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?><Error><Code>AuthorizationPermissionMismatch</Code><Message>This request is not authorized to perform this operation using this permission.
+RequestId:e526db30-f01e-0044-1bc4-14a002000000
+Time:2024-10-02T12:12:03.5638277Z</Message></Error>
+
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-request-id: e526db30-f01e-0044-1bc4-14a002000000
+x-ms-client-request-id: b2e60cd4-3e48-441d-8992-4d0a5965e1cb
+x-ms-version: 2023-11-03
+x-ms-error-code: AuthorizationPermissionMismatch
+Date: Wed, 02 Oct 2024 12:12:03 GMT
+Content-Length: 279
+Content-Type: application/xml
+---------------14-10-2024 11:27:07 AM---------------
+This request is not authorized to perform this operation using this permission.
+RequestId:0ac2b14f-101e-00e6-08fd-1dfc19000000
+Time:2024-10-14T05:57:07.6943498Z
+Status: 403 (This request is not authorized to perform this operation using this permission.)
+ErrorCode: AuthorizationPermissionMismatch
+
+Content:
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Error><Code>AuthorizationPermissionMismatch</Code><Message>This request is not authorized to perform this operation using this permission.
+RequestId:0ac2b14f-101e-00e6-08fd-1dfc19000000
+Time:2024-10-14T05:57:07.6943498Z</Message></Error>
+
+Headers:
+Server: Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+x-ms-error-code: AuthorizationPermissionMismatch
+x-ms-request-id: 0ac2b14f-101e-00e6-08fd-1dfc19000000
+x-ms-version: 2023-11-03
+x-ms-client-request-id: 7a62e7b8-5ed3-40cc-ac69-e0b71cd588ce
+Date: Mon, 14 Oct 2024 05:57:06 GMT
+Content-Length: 280
+Content-Type: application/xml
+---------------14-10-2024 11:31:05 AM---------------
+Q : 
+---------------14-10-2024 11:47:20 AM---------------
+Q : 
+---------------14-10-2024 12:19:48 PM---------------
+Blob Azure Configurations -LazardGPT For Prod_Test1111.docx deleted successfully.
