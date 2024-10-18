@@ -175,7 +175,9 @@ namespace CDF_Services.Services.LogViewerService
                     {
                         blobList.Add(new
                         {
-                            name = blobItem.Name
+                            name = blobItem.Name,
+                            containerName = containerName
+
                             //, properties = blobItem.Properties
                         });
                     }
