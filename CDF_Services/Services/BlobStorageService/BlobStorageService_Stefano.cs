@@ -566,6 +566,7 @@ namespace CDF_Services.Services.BlobStorageService
             return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
         }
 
+        // For hierarhical Storage Account
         public async Task<IActionResult> uploadBlob(IFormFile file)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))

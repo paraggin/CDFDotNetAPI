@@ -6,7 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace CDF_WebApi.Controllers.BolbStorage
 {
     [AllowAnonymous]
-    [Route("api/[controller]")]
+    [Route("api/azure_blobStorage")]
     [ApiController]
     public class BlobControllerController : ControllerBase
     {
@@ -16,30 +16,29 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _BlobStorageService = BlobStorageService;   
         }
 
-        /*[HttpPost]
-        [SwaggerOperation(Summary = "AC-CON", Description = "TEST Description")]
+       [HttpPost]
         [Route("uploadBlob_Identity")]
         public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
         {
             return await _BlobStorageService.uploadBlob(file);
 
         }
+        /*
+               [HttpGet]
+               [Route("downloadBlob_Identity")]
+               public async Task<IActionResult> downloadBlob_Identity(string name)
+               {
+                   return await _BlobStorageService.downloadBlob(name);
 
-        [HttpGet]
-        [Route("downloadBlob_Identity")]
-        public async Task<IActionResult> downloadBlob_Identity(string name)
-        {
-            return await _BlobStorageService.downloadBlob(name);
+               }
 
-        }
+               [HttpGet]
+               [Route("deleteBlob")]
+               public async Task<IActionResult> deleteBlob(string blobName)
+               {
+                   return await _BlobStorageService.DeleteBlob(blobName);
 
-        [HttpGet]
-        [Route("deleteBlob")]
-        public async Task<IActionResult> deleteBlob(string blobName)
-        {
-            return await _BlobStorageService.DeleteBlob(blobName);
-
-        }*/
+               }*/
 
         [HttpGet]
         [Route("ListBlobs_Identity")]

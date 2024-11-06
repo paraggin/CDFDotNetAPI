@@ -21,6 +21,8 @@ using CDF_Services.IServices.ISnowFlakeService;
 using CDF_Services.Services.SnowFlakeService;
 using CDF_Services.IServices.ILogViewerService;
 using CDF_Services.Services.LogViewerService;
+using CDF_Services.IServices.IDocViewerService;
+using CDF_Services.Services.DocViewerService;
 
 namespace CDF_Services.DependencyInjection
 {
@@ -50,6 +52,7 @@ namespace CDF_Services.DependencyInjection
             services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
             services.AddScoped<ILogViewerService,LogViewerService>();
             services.AddScoped<IBlobStorageService_Stefano, BlobStorageService_Stefano>();
+            services.AddScoped<IDocViewerService,DocViewerService>();
 
             #endregion
 
