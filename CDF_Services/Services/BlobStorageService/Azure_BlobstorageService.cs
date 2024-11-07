@@ -15,13 +15,13 @@ using System.Globalization;
 
 namespace CDF_Services.Services.BlobStorageService
 {
-    public class BlobStorageService_Stefano : IBlobStorageService_Stefano
+    public class Azure_BlobstorageService : IAzure_BlobstorageService
     {
         private readonly IConfiguration _configuration;
 
-        public BlobStorageService_Stefano(IConfiguration configuration)
+        public Azure_BlobstorageService(IConfiguration configuration)
         {
-         
+
             _configuration = configuration;
         }
         private string ProcessCSVStream1(Stream stream)
@@ -165,8 +165,8 @@ namespace CDF_Services.Services.BlobStorageService
             int statusCode = 200; // Default to 200 OK
             try
             {
-                string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+                string accountName = _configuration["Azure-Blobstorage:AccountName"];
+                string containerName = _configuration["Azure-Blobstorage:ContainerName"];
 
                 BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
                 BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -229,13 +229,13 @@ namespace CDF_Services.Services.BlobStorageService
         }
 
 
-        public async  Task<string> ConvertToJsonFromUrl(string fileName)
+        public async Task<string> ConvertToJsonFromUrl(string fileName)
         {
             try
             {
 
                 //  string url = "https://demohierarchical.blob.core.windows.net/sftp-esker/customers-500000.csv?skoid=fa2099ba-f7dd-4ef2-9b01-8169b911667a&sktid=f9527b8e-12ef-47fc-85aa-443d41b6f525&skt=2024-10-15T10%3A38%3A15Z&ske=2024-10-15T11%3A38%3A15Z&sks=b&skv=2023-11-03&sv=2023-11-03&spr=https&st=2024-10-15T10%3A37%3A15Z&se=2024-10-15T10%3A53%3A15Z&sr=b&sp=rwd&sig=8UqV%2Bax9YqEuwZpdeBYxi4N2tnD8jyKrSOFz5OEc%2F0g%3D";
-                string url =  await getBLOBSasUrlForJsonFormat(fileName);
+                string url = await getBLOBSasUrlForJsonFormat(fileName);
                 //string url = "https://demohierarchical.blob.core.windows.net/sftp-esker/testpopulation.csv?skoid=fa2099ba-f7dd-4ef2-9b01-8169b911667a&sktid=f9527b8e-12ef-47fc-85aa-443d41b6f525&skt=2024-10-15T10%3A56%3A12Z&ske=2024-10-15T11%3A56%3A12Z&sks=b&skv=2023-11-03&sv=2023-11-03&spr=https&st=2024-10-15T10%3A55%3A12Z&se=2024-10-15T11%3A11%3A12Z&sr=b&sp=rwd&sig=VXxmmsUjy9ylF4%2FpOyMSNjzIqwBqCutmwPgCqtfU8kU%3D";
                 if (url == "400")
                 {
@@ -313,8 +313,8 @@ namespace CDF_Services.Services.BlobStorageService
             {
                 try
                 {
-                    string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                    string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+                    string accountName = _configuration["Azure-Blobstorage:AccountName"];
+                    string containerName = _configuration["Azure-Blobstorage:ContainerName"];
 
                     string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
 
@@ -344,10 +344,11 @@ namespace CDF_Services.Services.BlobStorageService
                         return new JsonResult(new { Status = 400, Message = ex.ToString() });
 
                     }
-                   
+
 
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     return new JsonResult(new { Status = 400, Message = e.ToString() });
                 }
 
@@ -359,8 +360,8 @@ namespace CDF_Services.Services.BlobStorageService
 
             try
             {
-                string accountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                string containerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+                string accountName = _configuration["Azure-Blobstorage:AccountName"];
+                string containerName = _configuration["Azure-Blobstorage:ContainerName"];
 
 
                 var credential = new DefaultAzureCredential();
@@ -525,10 +526,10 @@ namespace CDF_Services.Services.BlobStorageService
                         return new JsonResult(new { StatusCode = 400, Message = "File name cannot be null or empty." });
                     }
 
-                     string ContainerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+                    string ContainerName = _configuration["Azure-Blobstorage:ContainerName"];
 
-                     string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                     string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
+                    string storageAccountName = _configuration["Azure-Blobstorage:AccountName"];
+                    string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
 
 
                     BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
@@ -565,8 +566,6 @@ namespace CDF_Services.Services.BlobStorageService
 
             return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
         }
-
-        // For hierarhical Storage Account
         public async Task<IActionResult> uploadBlob(IFormFile file)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
@@ -574,15 +573,72 @@ namespace CDF_Services.Services.BlobStorageService
                 try
                 {
                     System.Net.ServicePointManager.ServerCertificateValidationCallback +=
-                     (sender, cert, chain, sslPolicyErrors) => true; 
+                     (sender, cert, chain, sslPolicyErrors) => true;
 
                     if (file.Length > 0)
                     {
                         var fileName = Path.GetFileName(file.FileName);
                         var fileExtension = Path.GetExtension(fileName).ToLower();
 
-                        string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
-                        string fileSystemName = _configuration["AzureBlobStorageStefano:ContainerName"]; // File system (container) name for Data Lake
+                        string storageAccountName = _configuration["Azure-Blobstorage:AccountName"];
+                        string fileSystemName = _configuration["Azure-Blobstorage:ContainerName"]; // File system (container) name for Data Lake
+                        string fileSystemEndpoint = $"https://{storageAccountName}.dfs.core.windows.net/{fileSystemName}/";
+
+                        DataLakeFileSystemClient fileSystemClient = new DataLakeFileSystemClient(new Uri(fileSystemEndpoint), new DefaultAzureCredential());
+
+                        if (!await fileSystemClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "File system does not exist." });
+                        }
+
+                        DataLakeFileClient fileClient = fileSystemClient.GetFileClient(fileName);
+
+                        using Stream stream = file.OpenReadStream();
+                        await fileClient.UploadAsync(stream, overwrite: true);
+
+                        string contentType = GetContentType(fileExtension);
+                        await fileClient.SetHttpHeadersAsync(new Azure.Storage.Files.DataLake.Models.PathHttpHeaders { ContentType = contentType });
+
+                        IDictionary<string, string> metadata = new Dictionary<string, string>
+                    {
+                        { "file", fileName },
+                        { "period", DateTime.Now.ToString("yyyy-MM-dd") }
+                    };
+                        await fileClient.SetMetadataAsync(metadata);
+
+                        var fileUrl = fileClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                        writer.Write(fileUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
+                }
+            }
+
+            return new JsonResult(new { StatusCode = 200, Message = "File uploaded successfully." });
+        }
+
+
+        public async Task<IActionResult> uploadBlob_old(IFormFile file)
+        {
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
+                try
+                {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                     (sender, cert, chain, sslPolicyErrors) => true;
+
+                    if (file.Length > 0)
+                    {
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileExtension = Path.GetExtension(fileName).ToLower();
+
+                        string storageAccountName = _configuration["Azure-Blobstorage:AccountName"];
+                        string fileSystemName = _configuration["Azure-Blobstorage:ContainerName"]; // File system (container) name for Data Lake
                         string fileSystemEndpoint = $"https://{storageAccountName}.dfs.core.windows.net/{fileSystemName}/";
 
                         // Create DataLakeFileSystemClient for the file system (container)
@@ -628,21 +684,23 @@ namespace CDF_Services.Services.BlobStorageService
             return new JsonResult(new { StatusCode = 200, Message = "File uploaded successfully." });
         }
 
-        public async  Task<IActionResult> uploadBlob_BLOB(IFormFile file)
+        public async Task<IActionResult> uploadBlob_BLOB(IFormFile file)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
                 try
                 {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                    (sender, cert, chain, sslPolicyErrors) => true;
                     if (file.Length > 0)
                     {
 
                         var fileName = Path.GetFileName(file.FileName);
                         var fileExtension = Path.GetExtension(fileName).ToLower(); ;
 
-                        string ContainerName = _configuration["AzureBlobStorageStefano:ContainerName"];
+                        string ContainerName = _configuration["Azure-Blobstorage:ContainerName"];
 
-                        string storageAccountName = _configuration["AzureBlobStorageStefano:AccountName"];
+                        string storageAccountName = _configuration["Azure-Blobstorage:AccountName"];
                         string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
 
                         BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),

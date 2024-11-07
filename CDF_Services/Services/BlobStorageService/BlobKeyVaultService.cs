@@ -4,10 +4,8 @@ using Azure.Storage.Sas;
 using Azure.Storage;
 using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Mvc;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
-using CDF_Core.Entities.SnowFlake;
-using Amazon.Runtime.Credentials.Internal;
+using Azure.Security.KeyVault.Secrets;
 
 
 namespace CDF_Services.Services.BlobStorageService
@@ -22,19 +20,17 @@ namespace CDF_Services.Services.BlobStorageService
         }
         public async Task<IActionResult> GenerateBlobSASUrl(string storageAccountName, string containerName, string blobName)
         {
-           
+            string storageAccountKey = "";
+            var sasToken = "";
             try
             {
-
-                string storageAccountKey = "";
-                var sasToken = "";
 
                 string keyVaultUri = _configuration["KeyVault:KeyVaultURI"];
                 string storageAccountKeySecretNameTemplate = _configuration["KeyVault:AccountKeySecretNameTemplate"];
 
                 var client = new SecretClient(new Uri(keyVaultUri), new DefaultAzureCredential());
 
-                string   storageAccountKeySecretName = string.Format(storageAccountKeySecretNameTemplate, storageAccountName);     
+                string storageAccountKeySecretName = string.Format(storageAccountKeySecretNameTemplate, storageAccountName);
                 KeyVaultSecret secret = await client.GetSecretAsync(storageAccountKeySecretName);
                 storageAccountKey = secret.Value;
 
@@ -46,9 +42,9 @@ namespace CDF_Services.Services.BlobStorageService
                 var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
                 var blobClient = containerClient.GetBlobClient(blobName);
 
-                 sasToken = GenerateSasToken(containerClient, blobClient, storageCredentials);
+                sasToken = GenerateSasToken(containerClient, blobClient, storageCredentials);
 
-                return new JsonResult(new { StatusCode = 200, Url = $"{blobClient.Uri}?{sasToken}"});
+                return new JsonResult(new { StatusCode = 200, Url = $"{blobClient.Uri}?{sasToken}" });
             }
             catch (Exception ex)
             {
@@ -67,12 +63,11 @@ namespace CDF_Services.Services.BlobStorageService
                 BlobContainerName = containerClient.Name,
                 BlobName = blobClient.Name,
                 Resource = "b", // "b" for blob, "c" for container
-                StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
                 ExpiresOn = DateTimeOffset.UtcNow.AddHours(1) // SAS token valid for 1 hour
             };
 
             // Set the permissions for the SAS token (e.g., read permission)
-            sasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+            sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
             // Generate the SAS token using the shared key credential
             string sasToken = sasBuilder.ToSasQueryParameters(storageCredentials).ToString();

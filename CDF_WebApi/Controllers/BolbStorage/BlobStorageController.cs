@@ -1,11 +1,6 @@
-﻿using CDF_Services.IServices.IBlobStorageService;
-using CDF_Services.Services.BlobStorageService;
-using ExcelDataReader;
+using CDF_Services.IServices.IBlobStorageService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Data;
-using System.IO;
 
 namespace CDF_WebApi.Controllers.BolbStorage
 {
@@ -15,18 +10,16 @@ namespace CDF_WebApi.Controllers.BolbStorage
     [ApiController]
     public class BlobStorageController : Controller
     {
-        private readonly IBlobStorageService _BlobStorageService;      
-
+        private readonly IBlobStorageService _BlobStorageService;
 
         public BlobStorageController(IBlobStorageService BlobStorageService)
         {
-            _BlobStorageService = BlobStorageService;          
+            _BlobStorageService = BlobStorageService;
         }
 
-       
         [HttpPost]
         [Route("uploadBlob_Identity")]
-        public async Task<IActionResult> uploadDynamicBlob_Identity(IFormFile file)
+        public async Task<IActionResult> uploadBlob_Identity(IFormFile file)
         {
             return await _BlobStorageService.uploadDynamicBlobTest(file);
 
@@ -48,15 +41,29 @@ namespace CDF_WebApi.Controllers.BolbStorage
 
         }
 
-
         [HttpGet]
         [Route("ListBlobs_Identity")]
-        public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
+        public async Task<IActionResult> ListBlobs_Identity(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
         {
-            return await _BlobStorageService.FilterBlobs((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
+            return await _BlobStorageService.ListBlobs_Identity((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
 
         }
 
+        [HttpGet]
+        [Route("ListBlobsv2")]
+        public async Task<IActionResult> ListBlobsv2(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
+        {
+            return await _BlobStorageService.ListBlobs_Identity((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
+
+        }
+
+        //[HttpGet]
+        //[Route("GetVersion")]
+        //public IActionResult GetVersion()
+        //{
+        //    string response = "Version : 0.2";
+        //    return Ok(response);
+        //}
 
         [HttpGet]
         [Route("getBLobSAS_Identity")]
@@ -83,18 +90,63 @@ namespace CDF_WebApi.Controllers.BolbStorage
             return Ok(await _BlobStorageService.ConvertToJsonFromUrl(BlobName));
 
         }
-    
+        /*
+                [HttpPost]
+                [Route("webhook")]
+                public void ReceiveWebhook([FromBody] dynamic payload)
+                {
+                    _BlobStorageService.ReceiveWebhook(payload);
 
-          [HttpPost]
-          [Route("uploadBlobMultiple")]
-          public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")
+                }*/
+
+        /* [HttpGet]
+         [Route("DownloadFile")]
+         public async Task<IActionResult> DownloadFile(string prefix)
+         {
+             return await _BlobStorageService.DownloadFile(prefix);
+
+         }*/
+
+
+
+        /*  [HttpGet]
+          [Route("getBLobSAS")]
+          public async Task<IActionResult> getBLobSAS(string BlobName)
           {
-              return    await _BlobStorageService.uploadBlobMultiple(file, numberOfUploads, containerName); 
-          }         
-    */
+
+              return await _BlobStorageService.getBLobSAS(BlobName);
+
+          }*/
+
+
+        /* [HttpGet]
+         [Route("ListBlobsv2")]
+         public async Task<IActionResult> FilterBlobs(int? pageSize = 10, int? pageNumber = 1, string? period = null, string? reportingUnit = null, string? filename = null, string? containerName = "")
+         {
+             return await _BlobStorageService.FilterBlobs((int)pageSize, (int)pageNumber, period, reportingUnit, filename, containerName);
+
+         }*/
+
+
+
+
+        /*   [HttpPost]
+           [Route("uploadBlob")]
+           public async Task<IActionResult> uploadBlob(IFormFile file, string? containerName = "blob-upload-cdf")
+           {
+               return await _BlobStorageService.uploadBlob(file, containerName);
+           }*/
+
+        /* [HttpPost]
+         [Route("uploadBlobMultiple")]
+         public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "blob-upload-cdf")
+         {
+             return await _BlobStorageService.uploadBlobMultiple(file, numberOfUploads, containerName);
+         }*/
+
 
     }
 }
 
-    
+
 

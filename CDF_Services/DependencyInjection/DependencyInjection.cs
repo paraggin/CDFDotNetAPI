@@ -51,9 +51,9 @@ namespace CDF_Services.DependencyInjection
             services.AddScoped<IBlobStorageService, BlobStorageService>();
             services.AddScoped<IBlobKeyVaultService, BlobKeyVaultService>();
             services.AddScoped<ILogViewerService,LogViewerService>();
-            services.AddScoped<IBlobStorageService_Stefano, BlobStorageService_Stefano>();
-            services.AddScoped<IBlobStorageService_Stefano_2, BlobStorageService_Stefano_2>();
-            services.AddScoped<IBlobStorageService_Stefano_3, BlobStorageService_Stefano_3>();
+            services.AddScoped<IAzure_BlobstorageService, Azure_BlobstorageService>();
+            services.AddScoped<IAzure_BlobstorageService2, Azure_BlobstorageService2>();
+            services.AddScoped<IAzure_BlobstorageService3, Azure_BlobstorageService3>();
 
             services.AddScoped<IDocViewerService,DocViewerService>();
 

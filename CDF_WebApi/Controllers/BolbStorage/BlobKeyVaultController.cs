@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using CDF_Services.IServices.IBlobStorageService;
-using CDF_Services.Services.BlobStorageService;
-
 namespace CDF_WebApi.Controllers.BolbStorage
 {
     [AllowAnonymous]
@@ -19,15 +18,15 @@ namespace CDF_WebApi.Controllers.BolbStorage
             _blobStorageService = blobStorageService;
         }
 
-/*
+
         [HttpGet]
         [Route("getBLobSasUrl_KeyVault")]
         public async Task<IActionResult> getBLobSasUrl(string storageAccountName, string containerName, string blobName)
         {
 
-            return await _blobKeyVaultService.GenerateBlobSASUrl( storageAccountName,  containerName,  blobName);
+            return await _blobKeyVaultService.GenerateBlobSASUrl(storageAccountName, containerName, blobName);
 
-        }*/
+        }
 
         [HttpGet]
         [Route("getBLobSasUrl")]
@@ -39,4 +38,4 @@ namespace CDF_WebApi.Controllers.BolbStorage
         }
 
     }
-}
+}*/

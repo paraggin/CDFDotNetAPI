@@ -6,23 +6,23 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using CDF_Core.Entities.Blob_Storage;
-using CDF_Core.Entities.SnowFlake;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
 using CDF_Services.IServices.IBlobStorageService;
+using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Snowflake.Data.Client;
-using System.Data.Common;
 using System.Data;
+using System.Data.Entity;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
-using ExcelDataReader;
+
 
 namespace CDF_Services.Services.BlobStorageService
 {
@@ -34,7 +34,7 @@ namespace CDF_Services.Services.BlobStorageService
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
 
-        public BlobStorageService( IConfiguration configuration,IGenericRepository<Blob_Storage> iGenericRepository, IUnitOfWork<Blob_Storage> iUnitOfWork, ApplicationDBContext dbContext, IMapper mapper)
+        public BlobStorageService(IConfiguration configuration, IGenericRepository<Blob_Storage> iGenericRepository, IUnitOfWork<Blob_Storage> iUnitOfWork, ApplicationDBContext dbContext, IMapper mapper)
         {
             _IGenericRepository = iGenericRepository;
             _IUnitOfWork = iUnitOfWork;
@@ -43,59 +43,272 @@ namespace CDF_Services.Services.BlobStorageService
             _configuration = configuration;
         }
 
-      
-
-        public async Task<IActionResult> ListEmployeeDetai1l()
+        public async Task<IActionResult> getBlobSasUrl_Dynamic(string accountName, string containerName, string blobName)
         {
-            var employees = new List<Employee>();
+            string sasUrl = "";
             try
             {
-                using (IDbConnection conn = new SnowflakeDbConnection())
+
+                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
                 {
-                    conn.ConnectionString = "Account=TLUNZQI.EH47344;User=HIRENDEVANI;Password=Surat@8505;Database=EMPLOYEEINFODB;Schema=EMPLOYEE;Role=ACCOUNTADMIN";
-                    conn.Open();
-                    Console.WriteLine("Connection successful!");
+                    BlobContainerName = blobContainerClient.Name,
+                    BlobName = blobClient.Name,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "b"
+                };
 
-                    using (IDbCommand cmd = conn.CreateCommand())
+                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(24));
+
+                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                //  return new JsonResult(new { blobSASUrl = sasUrl });
+                return new JsonResult(new { StatusCode = 200, Url = sasUrl });
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { StatusCode = 400, Message = ex.Message, blobSASUrl = sasUrl });
+
+            }
+
+        }
+
+
+
+        private string ProcessExcelStream(Stream stream)
+        {
+            try
+            {
+                // Register encoding provider
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                DataSet excelData;
+                using (var reader = ExcelReaderFactory.CreateReader(stream))
+                {
+                    // Convert to DataSet with headers from the first row
+                    var conf = new ExcelDataSetConfiguration
                     {
-                        var query = "SELECT * FROM EMPLOYEEINFODB.EMPLOYEE.EMPLOYEE";
-
-                        //cmd.CommandText = "USE WAREHOUSE XXXX_WAREHOUSE";
-                        // cmd.ExecuteNonQuery();
-                        cmd.CommandText = query;  // sql opertion fetching 
-                                                  //data from an existing table
-                        using (var reader = cmd.ExecuteReader())
+                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
                         {
-                            while (reader.Read())
-                            {
-                                var employee = new Employee
-                                {
-                                    Id = reader.GetInt32(reader.GetOrdinal("ID")),
-                                    Name = reader.GetString(reader.GetOrdinal("NAME")),
-                                    Email = reader.GetString(reader.GetOrdinal("EMAIL")),
-                                    Dept = reader.GetString(reader.GetOrdinal("DEPT")),
-                                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("CREATED_AT"))
-                                };
+                            UseHeaderRow = true
+                        }
+                    };
 
-                                employees.Add(employee);
+                    excelData = reader.AsDataSet(conf);
+                }
+
+                // Convert DataSet to JSON
+                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
+                return jsonResult;
+
+            }
+            catch (Exception ex)
+            {
+                return "Failed";
+            }
+
+        }
+        async Task<string> getBLOBSasUrlForJsonFormat(string blobName)
+        {
+            string sasUrl = "";
+            int statusCode = 200; // Default to 200 OK
+            try
+            {
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+                string containerName = _configuration["AzureBlobStorage:ContainerName"];
+
+                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
+                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                // Check if the blob exists
+                if (!await blobClient.ExistsAsync())
+                {
+                    statusCode = 400; // Blob not found
+                    return statusCode.ToString();
+                }
+
+                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
+                {
+                    BlobContainerName = blobContainerClient.Name,
+                    BlobName = blobClient.Name,
+                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                    Protocol = SasProtocol.Https,
+                    Resource = "b"
+                };
+
+                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                return sasUrl;
+            }
+            catch (Exception ex)
+            {
+                statusCode = 400;
+                return statusCode.ToString();
+            }
+        }
+
+        private string ProcessCSVStream(Stream stream)
+        {
+            try
+            {
+                // Register encoding provider
+                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+                DataSet excelData;
+                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                {
+                    // Convert to DataSet with headers from the first row
+                    var conf = new ExcelDataSetConfiguration
+                    {
+                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                        {
+                            UseHeaderRow = true
+                        }
+                    };
+
+                    excelData = reader.AsDataSet(conf);
+                }
+
+                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
+                return jsonResult;
+
+            }
+            catch (Exception ex)
+            {
+                return "Failed";
+            }
+
+        }
+
+
+        public async Task<string> ConvertToJsonFromUrl(string fileName)
+        {
+            try
+            {
+
+                string url = await getBLOBSasUrlForJsonFormat(fileName);
+                if (url == "400")
+                {
+                    return "File Not Found";
+                }
+
+                if (url != "")
+                {
+
+                    var extension = Path.GetExtension(url.Split("?")[0]).ToLower();
+
+
+                    if (extension == ".xlsx" || extension == ".xls")
+                    {
+                        using (HttpClient client = new HttpClient())
+                        {
+
+                            var response = await client.GetAsync(url);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return "Failed";
+
+                            }
+
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                return ProcessExcelStream(stream);
+
                             }
                         }
-                        conn.Close();
+                    }
+                    else if (extension == ".csv")
+                    {
+                        using (HttpClient client = new HttpClient())
+                        {
+
+                            var response = await client.GetAsync(url);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return "Failed";
+
+                            }
+
+                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            {
+                                return ProcessCSVStream(stream);
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        return await textToJson(url);
+
+                    }
+
+
+                }
+                else
+                {
+                    return "Failed";
+                }
+
+
+            }
+            catch (HttpRequestException ex)
+            {
+                return "Failed";
+            }
+        }
+
+        private async Task<string> textToJson(string url)
+        {
+
+            try
+            {
+
+                var headers = string.Empty;
+                using (var httpClient = new HttpClient())
+                {
+                    // Fetch the content from the URL
+                    var response = await httpClient.GetAsync(url);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return "Failed";
+                    }
+
+                    var content = await response.Content.ReadAsStringAsync();
+
+
+                    using (var reader = new StringReader(content))
+                    {
+                        headers = reader.ReadToEnd();
 
                     }
                 }
+                var jsonResult = headers;
+                return jsonResult;
             }
-            catch (DbException exc)
+            catch (Exception ex)
             {
-                Console.WriteLine("Error Message: {0}", exc.Message);
-                // testStatus = false;
+                return "Failed";
             }
-
-            return new JsonResult(new { StatusCode = 200, Data=employees});
-          
         }
 
-        public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "container-poc")
+
+        public async Task<IActionResult> uploadBlobMultiple(IFormFile file, int numberOfUploads = 10000, string? containerName = "blob-upload-cdf")
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
@@ -156,7 +369,7 @@ namespace CDF_Services.Services.BlobStorageService
 
 
 
-        public void ReceiveWebhook( dynamic payload)
+        public void ReceiveWebhook(dynamic payload)
         {
             try
             {
@@ -173,7 +386,7 @@ namespace CDF_Services.Services.BlobStorageService
                 // Add your custom processing logic here
 
                 // Respond with a success status code
-               
+
             }
             catch (Exception ex)
             {
@@ -185,24 +398,18 @@ namespace CDF_Services.Services.BlobStorageService
                 Console.WriteLine("Error processing webhook: " + ex.Message);
 
                 // Respond with an error status code
-              
+
             }
         }
         public async Task<IActionResult> downloadBlobTest(string prefix)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-
             {
-                string accountName = _configuration["AzureBlobStorage:AccountName"];
-                string containerName = _configuration["AzureBlobStorage:ContainerName"];
+                string containerEndpoint = _configuration["AzureBlobStorage:ContainerEndpoint"];
 
-                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
+                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
 
-            BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
-
-            BlobClient blobClient = containerClient.GetBlobClient(prefix);
-
-          
+                BlobClient blobClient = containerClient.GetBlobClient(prefix);
 
                 try
                 {
@@ -233,52 +440,69 @@ namespace CDF_Services.Services.BlobStorageService
             }
 
         }
-        public async Task<IActionResult> uploadBlobTest()
+       public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
         {
+
+            var blobUrl = "";
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
             {
-                string blobContents = "Testing identity";
-                string accountName = _configuration["AzureBlobStorage:AccountName"];
-                string containerName = _configuration["AzureBlobStorage:ContainerName"];
-
-
-                string containerEndpoint = $"https://{accountName}.blob.core.windows.net/{containerName}/";
-
-                // Get a credential and create a client object for the blob container.
-                BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
-                                                                                new DefaultAzureCredential());
-
                 try
                 {
-                    // Create the container if it does not exist.
-                    await containerClient.CreateIfNotExistsAsync();
-
-                    // Upload text to a new block blob.
-                    byte[] byteArray = Encoding.ASCII.GetBytes(blobContents);
-
-                    using (MemoryStream stream = new MemoryStream(byteArray))
+                    if (file.Length > 0)
                     {
-                        await containerClient.UploadBlobAsync("Test_F1", stream);
+                        string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
+
+                        var fileName = Path.GetFileName(file.FileName);
+                        var fileExtension = Path.GetExtension(fileName).ToLower(); ;
+
+                        string containerEndpoint = _configuration["AzureBlobStorage:ContainerEndpoint"];
+
+                        BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                        new DefaultAzureCredential());
+
+                        if (!await containerClient.ExistsAsync())
+                        {
+                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
+                        }
+
+                        BlobClient blobClient = containerClient.GetBlobClient(fileName);
+                        string contentType = GetContentType(fileExtension);
+                        using Stream stream = file.OpenReadStream();
+                        blobClient.Upload(stream, overwrite:true) ;
+                       // await blobClient.SetAccessTierAsync(AccessTier.Hot);
+                        await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
+
+
+                        IDictionary<string, string> tags = new Dictionary<string, string>
+                        {
+                            { "file",fileName },
+                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
+                        };
+
+                        await blobClient.SetTagsAsync(tags);
+                        var fileUrl = blobClient.Uri.AbsoluteUri;
+                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
+
+                        writer.Write(fileUrl);
+                        blobUrl = fileUrl;
                     }
-
-
-
-                    return new JsonResult(new { StatusCode = 200, Message = "Success" });
-
+                    else
+                    {
+                        return new JsonResult(new { StatusCode = 400, Message = "File Required" });
+                    }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    writer.WriteLine("Identity Error :" + e.ToString());
-                    return new JsonResult(new { StatusCode = 400, Message = "Identity Error :" + e.ToString() });
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
 
-
+                    writer.Write(ex.Message);
+                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
                 }
-
-
             }
 
-        }
+            return new JsonResult(new { StatusCode = 200 });
 
+        }
         public async Task<IActionResult> DeleteBlob(string fileName)
         {
             using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
@@ -289,20 +513,25 @@ namespace CDF_Services.Services.BlobStorageService
                     {
                         return new JsonResult(new { StatusCode = 400, Message = "File name cannot be null or empty." });
                     }
+
                     string ContainerName = _configuration["AzureBlobStorage:ContainerName"];
 
                     string storageAccountName = _configuration["AzureBlobStorage:AccountName"];
                     string containerEndpoint = $"https://{storageAccountName}.blob.core.windows.net/{ContainerName}/";
 
-                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint), new DefaultAzureCredential());
+
+                    BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
+                                                                                   new DefaultAzureCredential());
 
                     if (!await containerClient.ExistsAsync())
                     {
                         return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
                     }
 
+                    // Get a reference to the blob
                     BlobClient blobClient = containerClient.GetBlobClient(fileName);
 
+                    // Delete the blob if it exists
                     var deleteResponse = await blobClient.DeleteIfExistsAsync();
 
                     if (deleteResponse.Value)
@@ -325,64 +554,9 @@ namespace CDF_Services.Services.BlobStorageService
 
             return new JsonResult(new { StatusCode = 200, Message = "Blob deleted successfully." });
         }
-        public async Task<IActionResult> uploadDynamicBlobTest(IFormFile file)
-        {
-      
-            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-            {
-                try
-                {
-                    if (file.Length > 0)
-                    {
-                       // string ConnectionString = _configuration["AzureBlobStorage:ConnectionString"];
-
-                        var fileName = Path.GetFileName(file.FileName);
-                        var fileExtension = Path.GetExtension(fileName).ToLower(); ;
-
-                        string containerEndpoint = _configuration["AzureBlobStorage:ContainerEndpoint"];
-
-                        // Get a credential and create a client object for the blob container.
-                        BlobContainerClient containerClient = new BlobContainerClient(new Uri(containerEndpoint),
-                                                                                        new DefaultAzureCredential());
-
-                        if (!await containerClient.ExistsAsync())
-                        {
-                            return new JsonResult(new { StatusCode = 400, Message = "Container does not exist." });
-                        }
-
-                        BlobClient blobClient = containerClient.GetBlobClient(fileName);
-                        string contentType = GetContentType(fileExtension);
-                        using Stream stream = file.OpenReadStream();
-                        blobClient.Upload(stream,overwrite :true);
-                      //  await blobClient.SetAccessTierAsync(AccessTier.Hot);
-                       await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = contentType });
 
 
-                        IDictionary<string, string> tags = new Dictionary<string, string>
-                        {
-                            { "file",fileName },
-                            { "period" ,DateTime.Now.ToString("yyyy-MM-dd")}
-                        };
 
-                        await blobClient.SetTagsAsync(tags);
-                        var fileUrl = blobClient.Uri.AbsoluteUri;
-                        writer.WriteLine("---------------" + DateTime.Now + "---------------");
-
-                        writer.Write(fileUrl);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
-
-                    writer.Write(ex.Message);
-                    return new JsonResult(new { StatusCode = 400, Message = ex.Message });
-                }
-            }
-
-            return new JsonResult(new { StatusCode = 200 });
-
-        }
         private string GetContentType(string fileExtension)
         {
             switch (fileExtension)
@@ -582,7 +756,7 @@ namespace CDF_Services.Services.BlobStorageService
                     Protocol = SasProtocol.Https,
                     Resource = "c",
                 };
-                  //blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
+                //blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.Read);
                 blobSasBuilder.SetPermissions(Azure.Storage.Sas.BlobSasPermissions.All);
                 //blobSasBuilder.SetPermissions(BlobContainerSasPermissions.All);
                 // blobSasBuilder.SetPermissions(BlobContainerSasPermissions.Write);
@@ -599,320 +773,311 @@ namespace CDF_Services.Services.BlobStorageService
 
         }
 
-         async Task<String> getBLOBSasUrl(string blobName)
-        {
-            string sasUrl = "";
-            try
-            {
-                string accountName = _configuration["AzureBlobStorage:AccountName"];
-                string containerName = _configuration["AzureBlobStorage:ContainerName"];
-
-                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
-
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
-
-                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
-                {
-                    BlobContainerName = blobContainerClient.Name,
-                    BlobName = blobClient.Name,
-                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
-                    Protocol = SasProtocol.Https,
-                    Resource = "b"
-                };
-
-                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
-
-                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-
-                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
-                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
-
-                return sasUrl;
-            }
-            catch (Exception ex)
-            {
-                return sasUrl;
-            }
-          
-        }
-
-      public  async Task<IActionResult> getBlobSasUrl_Dynamic(string accountName, string containerName, string blobName)
-        {
-            string sasUrl = "";
-            try
-            {            
-
-                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
-
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
-
-                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
-                {
-                    BlobContainerName = blobContainerClient.Name,
-                    BlobName = blobClient.Name,
-                    StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
-                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
-                    Protocol = SasProtocol.Https,
-                    Resource = "b"
-                };
-
-                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
-
-                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-
-                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
-                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
-
-               // return new JsonResult(new { blobSASUrl = sasUrl });
-                return new JsonResult(new { StatusCode = 200, Url = sasUrl });
-
-
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult(new { StatusCode = 400, Message = ex.Message, blobSASUrl = sasUrl });
-
-            }
-
-        }
-
-        async Task<string> getBLOBSasUrlForJsonFormat(string blobName)
-        {
-            string sasUrl = "";
-            int statusCode = 200; // Default to 200 OK
-            try
-            {
-                string accountName = _configuration["AzureBlobStorage:AccountName"];
-                string containerName = _configuration["AzureBlobStorage:ContainerName"];
-
-                BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
-                BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
-
-                // Check if the blob exists
-                if (!await blobClient.ExistsAsync())
-                {
-                    statusCode = 400; // Blob not found
-                    return statusCode.ToString();
-                }
-
-                BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
-                {
-                    BlobContainerName = blobContainerClient.Name,
-                    BlobName = blobClient.Name,
-                    ExpiresOn = DateTime.UtcNow.AddMinutes(15),
-                    Protocol = SasProtocol.Https,
-                    Resource = "b"
-                };
-
-                blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
-
-                UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-
-                string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
-                sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
-
-                return sasUrl;
-            }
-            catch (Exception ex)
-            {
-                statusCode = 400;
-                return statusCode.ToString();
-            }
-        }
 
         public async Task<IActionResult> getBLobSASIdentity(string blobName)
         {
-                       
+            string accountName = _configuration["AzureBlobStorage:AccountName"];
+
+            using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+            {
                 try
                 {
-                    string sasUrl = await getBLOBSasUrl(blobName);                                  
+                    BlobServiceClient blobServiceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), new DefaultAzureCredential());
 
-                   return new JsonResult(new { StatusCode = 200, blobSasUrl = sasUrl });
+                    string containerName = _configuration["AzureBlobStorage:ContainerName"];
+                    BlobContainerClient blobContainerClient = blobServiceClient.GetBlobContainerClient(containerName);
+
+                    BlobClient blobClient = blobContainerClient.GetBlobClient(blobName);
+
+                    BlobSasBuilder blobSasBuilder = new BlobSasBuilder()
+                    {
+                        BlobContainerName = blobContainerClient.Name,
+                        BlobName = blobClient.Name,
+                        ExpiresOn = DateTime.UtcNow.AddMinutes(15),
+                        Protocol = SasProtocol.Https,
+                        Resource = "b"  // 'b' indicates Blob-level resource in the container
+                    };
+
+                    blobSasBuilder.SetPermissions(BlobSasPermissions.Read | BlobSasPermissions.Write | BlobSasPermissions.Delete);
+
+                    UserDelegationKey userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+                    string sasToken = blobSasBuilder.ToSasQueryParameters(userDelegationKey, accountName).ToString();
+                    string sasUrl = $"{blobClient.Uri.AbsoluteUri}?{sasToken}";
+
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine(sasUrl);
+
+                    return new JsonResult(new { blobSasUrl = sasUrl });
                 }
                 catch (Exception e)
                 {
+                    writer.WriteLine("Error :" + e.ToString());
                     return new JsonResult(new { StatusCode = 400, Message = "Error :" + e.ToString() });
                 }
-            
+            }
         }
 
-        private string ProcessCSVStream(Stream stream)
+       
+        public async Task<IActionResult> ListBlobs_Identity(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
         {
+
             try
             {
-                // Register encoding provider
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
 
-                DataSet excelData;
-                using (var reader = ExcelReaderFactory.CreateCsvReader(stream))
+                var credential = new DefaultAzureCredential();
+                var serviceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), credential);
+
+                containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
+                BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
+                int totalCount = 0;
+
+                string query = "";
+                string startdate = "";
+                string enddate = "";
+                if (!string.IsNullOrEmpty(period))
                 {
-                    // Convert to DataSet with headers from the first row
-                    var conf = new ExcelDataSetConfiguration
+                    if (DateTime.TryParseExact(period, "MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDate))
                     {
-                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
-                        {
-                            UseHeaderRow = true
-                        }
-                    };
-
-                    excelData = reader.AsDataSet(conf);
-                }
-
-                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
-                return jsonResult;
-
-            }
-            catch (Exception ex)
-            {
-                return "Failed";
-            }
-
-        }
-
-        private string ProcessExcelStream(Stream stream)
-        {
-            try
-            {
-                // Register encoding provider
-                System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-
-                DataSet excelData;
-                using (var reader = ExcelReaderFactory.CreateReader(stream))
-                {
-                    // Convert to DataSet with headers from the first row
-                    var conf = new ExcelDataSetConfiguration
-                    {
-                        ConfigureDataTable = _ => new ExcelDataTableConfiguration
-                        {
-                            UseHeaderRow = true
-                        }
-                    };
-
-                    excelData = reader.AsDataSet(conf);
-                }
-
-                // Convert DataSet to JSON
-                var jsonResult = JsonConvert.SerializeObject(excelData, Formatting.Indented);
-                return jsonResult;
-
-            }
-            catch (Exception ex)
-            {
-                return "Failed";
-            }
- 
-        }
-        public async Task<string> ConvertToJsonFromUrl(string fileName)
-        {
-            try
-            {
-
-                string url = await getBLOBSasUrlForJsonFormat(fileName);
-                if(url == "400")
-                {
-                    return "File Not Found";
-                }
-
-                if(url != "") {
-
-                    var extension = Path.GetExtension(url.Split("?")[0]).ToLower(); 
-
-
-                    if(extension == ".xlsx" || extension == ".xls")
-                    {
-                        using (HttpClient client = new HttpClient())
-                        {
-
-                            var response = await client.GetAsync(url);
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                return "Failed";
-
-                            }
-
-                            using (var stream = await response.Content.ReadAsStreamAsync())
-                            {
-                                return ProcessExcelStream(stream);
-
-                            }
-                        }
+                        DateTime fromDate = new DateTime(parsedDate.Year, parsedDate.Month, 1);
+                        DateTime toDate = fromDate.AddMonths(1).AddDays(-1);
+                        startdate = fromDate.ToString("yyyy-MM-dd");
+                        enddate = toDate.ToString("yyyy-MM-dd");
                     }
-                    else if (extension == ".csv")
+                }
+
+                if (!string.IsNullOrEmpty(startdate))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
+
+                    query += @$"""period"" >= '{startdate}'";
+                }
+
+                if (!string.IsNullOrEmpty(enddate))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
+
+                    query += @$"""period"" <= '{enddate}'";
+                }
+
+                if (!string.IsNullOrEmpty(reportingUnit))
+                {
+                    if (!string.IsNullOrEmpty(query))
+                        query += " AND ";
+
+                    query += @$"""reportingunit"" = '{reportingUnit}'";
+                }
+
+                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
+                {
+                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
+                    writer.WriteLine("Q : " + query);
+
+                }
+               
+
+                string continuationToken = null;
+                int skip = (int)((pageNumber - 1) * pageSize);
+                //  skip = 0;
+                List<Object> blobTags = new List<Object>();
+                if (!string.IsNullOrEmpty(query))
+                {
+
+                    if (!string.IsNullOrEmpty(filename))
                     {
-                        using (HttpClient client = new HttpClient())
+                        totalCount = 0;
+                        await foreach (TaggedBlobItem blobItem in containerClient.FindBlobsByTagsAsync(query))
+                        {
+                            if (blobItem.BlobName.Contains(filename, StringComparison.OrdinalIgnoreCase))
+                            {
+
+                                totalCount++;
+                            }
+
+                        }
+
+                        await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
                         {
 
-                            var response = await client.GetAsync(url);
-                            if (!response.IsSuccessStatusCode)
+                            foreach (TaggedBlobItem blobItem in page.Values)
                             {
-                                return "Failed";
+                                if (blobItem.BlobName.Contains(filename, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                                    GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                                    blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+                                }
 
+                                if (blobTags.Count >= pageSize)
+                                {
+                                    break;
+                                }
                             }
 
-                            using (var stream = await response.Content.ReadAsStreamAsync())
+                            if ((int)skip >= (int)page.Values.Count)
                             {
-                                return ProcessCSVStream(stream);
-
+                                skip -= page.Values.Count;
+                                continuationToken = page.ContinuationToken;
+                                continue;
                             }
+                            if (blobTags.Count >= pageSize)
+                            {
+                                break;
+                            }
+
+                            skip = Math.Max(0, pageSize - blobTags.Count);
+
+                            continuationToken = page.ContinuationToken;
                         }
                     }
                     else
                     {
-                        return await textToJson(url);
+                        await foreach (TaggedBlobItem blob in containerClient.FindBlobsByTagsAsync(query))
+                        {
+                            totalCount++;
+                        }
+                        await foreach (Page<TaggedBlobItem> page in containerClient.FindBlobsByTagsAsync(query).AsPages(continuationToken, pageSize))
+                        {
+                            if (skip >= page.Values.Count)
+                            {
+                                skip -= page.Values.Count;
+                                continuationToken = page.ContinuationToken;
+                                continue;
+                            }
 
+                            var items = page.Values.Skip(skip);
+
+                            foreach (TaggedBlobItem blobItem in items)
+                            {
+                                BlobClient blobClient = containerClient.GetBlobClient(blobItem.BlobName);
+                                GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                                blobTags.Add(new { name = blobItem.BlobName, tags = blobProperties.Tags });
+                            }
+
+                            if (blobTags.Count >= pageSize)
+                            {
+                                break;
+                            }
+
+                            skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+                            continuationToken = page.ContinuationToken;
+                        }
                     }
 
-
+                    return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
                 }
-                else
+
+                await foreach (BlobItem blob in containerClient.GetBlobsAsync(traits: BlobTraits.None))
                 {
-                    return "Failed";
+                    totalCount++;
                 }
-
-
-            }
-            catch (HttpRequestException ex)
-            {
-                return "Failed";
-            }
-        }
-
-        private async  Task<string> textToJson(string url)
-        {
-            
-            try
-            {
-
-                var headers = string.Empty;
-                using (var httpClient = new HttpClient())
+                await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: filename).AsPages(continuationToken, pageSize))
                 {
-                    // Fetch the content from the URL
-                    var response = await httpClient.GetAsync(url);
-                    if (!response.IsSuccessStatusCode)
+                    if (skip >= page.Values.Count)
                     {
-                        return "Failed";
+                        skip -= page.Values.Count;
+                        continuationToken = page.ContinuationToken;
+                        continue;
                     }
 
-                    var content = await response.Content.ReadAsStringAsync();
+                    var items = page.Values.Skip(skip);
 
-                   
-                    using (var reader = new StringReader(content))
+                    foreach (BlobItem blobItem in items)
                     {
-                        headers = reader.ReadToEnd();
-
+                        BlobClient blobClient = containerClient.GetBlobClient(blobItem.Name);
+                        GetBlobTagResult blobProperties = await blobClient.GetTagsAsync();
+                        blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Tags });
                     }
+
+                    if (blobTags.Count >= pageSize)
+                    {
+                        break;
+                    }
+
+                    skip = Math.Max(0, (int)pageSize - blobTags.Count);
+                    continuationToken = page.ContinuationToken;
                 }
-                var jsonResult = headers;
-                return jsonResult;            }
+
+                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+            }
             catch (Exception ex)
             {
-                return "Failed";
+                return new JsonResult(new { Status = 400, Message = ex.ToString() });
+
+            }
+        }
+        public async Task<IActionResult> ListBlobsUsingMetadata_Identity(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
+        {
+            try
+            {
+                string accountName = _configuration["AzureBlobStorage:AccountName"];
+
+                var credential = new DefaultAzureCredential();
+                var serviceClient = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), credential);
+
+                containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
+                BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
+                int totalCount = 0;
+
+                string continuationToken = null;
+                int skip = (int)((pageNumber - 1) * pageSize);
+                List<Object> blobTags = new List<Object>();
+
+                // Construct the metadata filter query
+               /* string metadataFilter = "";
+                if (!string.IsNullOrEmpty(filename))
+                {
+                    metadataFilter = $"metadata/fileName eq '{filename}'";
+                }*/
+
+                // Fetch blobs using metadata filtering
+                await foreach (Page<BlobItem> page in containerClient.GetBlobsAsync(traits: BlobTraits.Metadata, prefix: filename).AsPages(continuationToken, pageSize))
+                {
+                    if (skip >= page.Values.Count)
+                    {
+                        skip -= page.Values.Count;
+                        continuationToken = page.ContinuationToken;
+                        continue;
+                    }
+
+                    var items = page.Values.Skip(skip);
+
+                    foreach (BlobItem blobItem in items)
+                    {
+                        // Get blob metadata
+                        BlobClient blobClient = containerClient.GetBlobClient(blobItem.Name);
+                        Response<BlobProperties> blobProperties = await blobClient.GetPropertiesAsync();
+                        blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Value.Metadata });
+                        // Check if metadata matches the filter
+                        if (blobProperties.Value.Metadata.TryGetValue("period", out var periodValue) &&
+                            blobProperties.Value.Metadata.TryGetValue("reportingunit", out var reportingUnitValue) &&
+                            (string.IsNullOrEmpty(period) || periodValue == period) &&
+                            (string.IsNullOrEmpty(reportingUnit) || reportingUnitValue == reportingUnit))
+                        {
+                           // blobTags.Add(new { name = blobItem.Name, tags = blobProperties.Value.Metadata });
+                        }
+                    }
+
+                    if (blobTags.Count >= pageSize)
+                    {
+                        break;
+                    }
+
+                    skip = Math.Max(0, (int)(pageSize - blobTags.Count));
+                    continuationToken = page.ContinuationToken;
+                }
+
+                // Count total blobs
+                totalCount = blobTags.Count;
+
+                return new JsonResult(new { TotalCount = totalCount, Blobs = blobTags });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { Status = 400, Message = ex.ToString() });
             }
         }
 
@@ -922,15 +1087,22 @@ namespace CDF_Services.Services.BlobStorageService
 
             try
             {
+                string connectionString = _configuration["AzureBlobStorage:ConnectionString"];
 
-                string storageAccount = _configuration["AzureBlobStorage:AccountName"];
+                // var serviceClient = new BlobServiceClient(connectionString);
+
 
                 var credential = new DefaultAzureCredential();
-                var serviceClient = new BlobServiceClient(new Uri($"https://{storageAccount}.blob.core.windows.net"), credential);
+                var serviceClient = new BlobServiceClient(new Uri("https://blobpoc02.blob.core.windows.net"), credential);
 
-                containerName = _configuration["AzureBlobStorage:ContainerName"];
+
+
+                containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
                 BlobContainerClient containerClient = serviceClient.GetBlobContainerClient(containerName);
                 int totalCount = 0;
+
+
+                // period = string.IsNullOrEmpty(period) ? DateTime.Now.ToString("MM-yyyy") : period;
 
                 string query = "";
                 string startdate = "";
@@ -1109,8 +1281,8 @@ namespace CDF_Services.Services.BlobStorageService
 
 
 
-      public async Task<IActionResult> FilterBlobsUsingRestAPI(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
-      {
+        public async Task<IActionResult> FilterBlobsUsingRestAPI(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName)
+        {
             containerName = containerName == "" ? _configuration["AzureBlobStorage:ContainerName"] : containerName;
 
             string baseUrl = $"https://blobpoc02.blob.core.windows.net";
@@ -1181,7 +1353,7 @@ namespace CDF_Services.Services.BlobStorageService
                 if (response.IsSuccessStatusCode)
                 {
                     string json = await response.Content.ReadAsStringAsync();
-                   // dynamic result = JsonConvert.DeserializeObject(json);
+                    // dynamic result = JsonConvert.DeserializeObject(json);
 
                     return new JsonResult(json);
                 }
@@ -1199,7 +1371,7 @@ namespace CDF_Services.Services.BlobStorageService
         {
             // Construct the URI. This will look like this:
             //   https://blolpoc02.blob.core.windows.net/resource
-           // string uri = $"http://{storageAccountName}.blob.core.windows.net?comp=list";
+            // string uri = $"http://{storageAccountName}.blob.core.windows.net?comp=list";
             string uri = $"https://blobpoc02.blob.core.windows.net/container-test?restype=container&comp=list";
 
 
@@ -1239,7 +1411,7 @@ namespace CDF_Services.Services.BlobStorageService
                     Console.WriteLine($"Container name = {container.Element("Name").Value}");
                 }
             }
-           
+
         }
         private static string GetRelativePathFromUri(Uri uri)
         {
@@ -1276,75 +1448,6 @@ namespace CDF_Services.Services.BlobStorageService
                 string signature = Convert.ToBase64String(hmac.ComputeHash(data));
                 return $"{storageAccountName}:{signature}";
             }
-        }
-
-
-
-        public async Task<IActionResult> ListBlobsAsyncREST()
-        {
-
-
-          string  storageAccountName = "blobpoc02";
-           string storageAccountKey = "a8NjedNF5CBZ76krN/HDW5QXdDR8lapH1Pqh8flb1imX5MrsN3ZVv44BciaB9XTQK2mhtTHanvGK+AStqO7PFg==";
-            string containerName = "container-test";
-
-            try {
-                // Construct the URI to list blobs in the container.
-                string uri = $"http://{storageAccountName}.blob.core.windows.net/{containerName}?restype=container&comp=list";
-
-                // Instantiate the request message.
-                using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-                // Add the request headers for x-ms-date and x-ms-version.
-                DateTime now = DateTime.UtcNow;
-                httpRequestMessage.Headers.Add("x-ms-date", now.ToString("R", CultureInfo.InvariantCulture));
-                httpRequestMessage.Headers.Add("x-ms-version", "2020-04-08");
-
-                // Add the authorization header.
-                httpRequestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("SharedKey",
-                    GetSharedKeyAuthorizationHeader(storageAccountName, storageAccountKey, now, httpRequestMessage));
-
-                // Send the request.
-                using var httpClient = new HttpClient();
-                using var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage, CancellationToken.None);
-
-                return new JsonResult(new { Blobs = httpResponseMessage });
-
-
-                // If successful (status code = 200), 
-                // parse the XML response for the blob names.
-                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-                {
-                    writer.WriteLine($"Blob STATUS CODE  = {httpResponseMessage.StatusCode}");
-
-                }
-                if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
-                {
-                    string xmlString = await httpResponseMessage.Content.ReadAsStringAsync();
-                    XElement x = XElement.Parse(xmlString);
-                    foreach (XElement blob in x.Element("Blobs").Elements("Blob"))
-                    {
-
-                        using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-                        {
-                            writer.WriteLine("---------------" + DateTime.Now + "---------------");
-                            writer.WriteLine($"Blob name = {blob.Element("Name").Value}");
-
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                using (StreamWriter writer = System.IO.File.AppendText("log.txt"))
-                {
-                    writer.WriteLine("---------------" + DateTime.Now + "---------------");
-                    writer.WriteLine("BLOB REST API Error : "+ex.Message);
-
-                }
-            }
-            return null;
-
         }
 
         public async Task<IActionResult> DownloadFile(string prefix)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
 using System.Text.Json;
@@ -47,7 +47,7 @@ namespace CDF_WebApi.Controllers.CdfPOC
                 Console.WriteLine($"Error calling POST API: {ex.Message}");
                 return new JsonResult(new { statusCode = 400, message = ex.Message });
             }
-            /*
+            *//*
                         try
                         {
 
@@ -90,8 +90,9 @@ namespace CDF_WebApi.Controllers.CdfPOC
                             Console.WriteLine($"Error calling POST API: {ex.Message}");
                             return new JsonResult(new { statusCode = 400, messsage = ex.Message });
 
-                        }*/
+                        }*//*
 
         }
     }
 }
+*/

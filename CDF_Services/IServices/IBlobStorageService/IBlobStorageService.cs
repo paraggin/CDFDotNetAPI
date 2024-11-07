@@ -1,5 +1,4 @@
-﻿using CDF_Core.Entities.SnowFlake;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CDF_Services.IServices.IBlobStorageService
@@ -9,23 +8,23 @@ namespace CDF_Services.IServices.IBlobStorageService
 
         Task<IActionResult> getBLobSAS(string BlobName);
 
-        Task<IActionResult> DeleteBlob(string fileName);
-
-        Task<string> ConvertToJsonFromUrl(string fileName);
-
         Task<IActionResult> getBLobSASIdentity(string BlobName);
 
         Task<IActionResult> getBlobSasUrl_Dynamic(string accountName, string containerName, string blobName);
 
-        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename,string containerName);
+        Task<IActionResult> DeleteBlob(string fileName);
+
+        Task<string> ConvertToJsonFromUrl(string fileName);
+
+        Task<IActionResult> FilterBlobs(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
+      
+        Task<IActionResult> ListBlobs_Identity(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
+        
 
         Task<IActionResult> FilterBlobsUsingRestAPI(int pageSize, int pageNumber, string period, string reportingUnit, string filename, string containerName);
 
-        Task<IActionResult> ListBlobsAsyncREST();
 
         Task<IActionResult> uploadBlob(IFormFile file, string containerName);
-
-        Task<IActionResult> uploadBlobTest();
 
         Task<IActionResult> uploadDynamicBlobTest(IFormFile file);
 
@@ -36,8 +35,6 @@ namespace CDF_Services.IServices.IBlobStorageService
         Task<IActionResult> DownloadFile(string prefix);
 
         Task<IActionResult> downloadBlobTest(string prefix);
-
-     
 
     }
 }
