@@ -79,7 +79,7 @@ builder.Services.ImplementPersistence(builder.Configuration);
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRoles>().AddEntityFrameworkStores<ApplicationDBContext>();
 builder.Services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
-    builder.Configuration.GetConnectionString("myConnection")));
+    builder.Configuration.GetConnectionString("hrConnection")));
 
 
 

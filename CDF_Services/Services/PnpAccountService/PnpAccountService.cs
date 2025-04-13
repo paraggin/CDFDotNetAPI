@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿/*using AutoMapper;
 using CDF_Core.Entities.PNP_Accounts;
 using CDF_Core.Interfaces;
 using CDF_Infrastructure.Persistence.Data;
@@ -47,3 +47,4 @@ namespace CDF_Services.Services.PnpAccountService
     }
 }
 
+*/

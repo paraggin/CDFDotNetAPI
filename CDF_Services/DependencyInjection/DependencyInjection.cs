@@ -6,7 +6,6 @@ using CDF_Infrastructure.UnitOfWork;
 using CDF_Core.Interfaces;
 using CDF_Services.JwtSetting;
 using CDF_Infrastructure.Repository;
-using CDF_Services.Services.PnpAccountService;
 using CDF_Services.IServices.IPnpAccountServices;
 using CDF_Services.Auth;
 using CDF_Services.Helper.Emails;
@@ -16,13 +15,14 @@ using Consfd = CDF_Services.Constants.Constants;
 using CDF_Services.IServices.IBlobStorageService;
 using CDF_Services.Services.BlobStorageService;
 using CDF_Services.IServices.IHolidayCalendarServices;
-using CDF_Services.Services.HolidayCalendarServices;
 using CDF_Services.IServices.ISnowFlakeService;
 using CDF_Services.Services.SnowFlakeService;
 using CDF_Services.IServices.ILogViewerService;
 using CDF_Services.Services.LogViewerService;
 using CDF_Services.IServices.IDocViewerService;
 using CDF_Services.Services.DocViewerService;
+using CDF_Services.IServices.LoadMatrix.BusinessContinuity;
+using CDF_Services.Services.LoadMatric.BusinessContinuty;
 
 namespace CDF_Services.DependencyInjection
 {
@@ -33,7 +33,7 @@ namespace CDF_Services.DependencyInjection
         {
             // Register EF Core DbContext
             services.AddDbContext<ApplicationDBContext>(option => option.UseSqlServer(
-               configuration.GetConnectionString("myConnection")));
+               configuration.GetConnectionString("hrConnection")));
             services.AddSignalR();
 
             // Register scoped services
@@ -42,9 +42,11 @@ namespace CDF_Services.DependencyInjection
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<Consfd, Consfd>();
 
+            services.AddScoped<IBusinessContinutyService,BusinessContinutyService> ();
+
             #region Get PNP Account Data
-            services.AddScoped<IPnpAccountServices, PnpAccountService>();
-            services.AddScoped<IHolidayCalendarService, HolidayCalendarService>();
+         /*   services.AddScoped<IPnpAccountServices, PnpAccountService>();
+            services.AddScoped<IHolidayCalendarService, HolidayCalendarService>();*/
             #endregion
 
             #region Blob storage

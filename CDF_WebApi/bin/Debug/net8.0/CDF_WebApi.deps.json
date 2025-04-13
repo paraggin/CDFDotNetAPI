@@ -2582,7 +2582,10 @@
           "Snowflake.Data": "4.1.0"
         },
         "runtime": {
-          "CDF_Core.dll": {}
+          "CDF_Core.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "CDF_Infrastructure/1.0.0": {
@@ -2600,7 +2603,10 @@
           "System.IdentityModel.Tokens.Jwt": "7.5.0"
         },
         "runtime": {
-          "CDF_Infrastructure.dll": {}
+          "CDF_Infrastructure.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "CDF_Services/1.0.0": {
@@ -2634,7 +2640,10 @@
           "System.IdentityModel.Tokens.Jwt": "7.5.0"
         },
         "runtime": {
-          "CDF_Services.dll": {}
+          "CDF_Services.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }

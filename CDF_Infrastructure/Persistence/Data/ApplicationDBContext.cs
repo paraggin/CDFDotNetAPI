@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using CDF_Core.Models.Auth;
 using CDF_Core.Entities.Blob_Storage;
 using CDF_Core.Entities.Holiday_Calendar;
+using CDF_Core.Entities.LoadMatrix.BusinessContinuity;
 
 namespace CDF_Infrastructure.Persistence.Data
 {
@@ -20,7 +21,9 @@ namespace CDF_Infrastructure.Persistence.Data
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public DbSet<Profile> UserInfo { get; set; }
+        public DbSet<Crisis_mgmt> Crisis_Mgmt { get; set; }
+
+  /*      public DbSet<Profile> UserInfo { get; set; }
         public DbSet<RegisterType> RegisterType { get; set; }
 
         public DbSet<PNP_Accounts> PNP_Accounts { get; set; }
@@ -28,6 +31,8 @@ namespace CDF_Infrastructure.Persistence.Data
         public DbSet<Event> Event { get; set; }
 
         public DbSet<Holiday> Holiday { get; set; }
+
+     
 
         //public DbSet<Blob_Storage> Blob_Storage { get; set; }
 
@@ -72,6 +77,8 @@ namespace CDF_Infrastructure.Persistence.Data
 
             return base.SaveChanges();
         }
+
+       
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             var changedEntities = ChangeTracker.Entries<TransactionEntityBase>()
@@ -97,5 +104,7 @@ namespace CDF_Infrastructure.Persistence.Data
             }
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
+    
+    */
     }
 }

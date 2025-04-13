@@ -1286,7 +1286,10 @@
           "Snowflake.Data": "4.1.0"
         },
         "runtime": {
-          "CDF_Core.dll": {}
+          "CDF_Core.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       }
     }
