@@ -9,21 +9,21 @@ using System.Threading.Tasks;
 
 namespace CDF_Services.Services.LoadMatric.BusinessContinuty
 {
-    public class BusinessContinutyService : IBusinessContinutyService
+    public class Leadership_LZService : ILeadership_LZService
     {
         private readonly ApplicationDBContext _dbContext;
 
-        public BusinessContinutyService(ApplicationDBContext dbContext)
+        public Leadership_LZService(ApplicationDBContext dbContext)
         {
             _dbContext = dbContext;
         }
 
-        public CrisisMgmtResponse GetCrisisManagementData()
+        public Leadership_LZResponse GetLeadershipLZData()
         {
-           
-            CrisisMgmtResponse response=new CrisisMgmtResponse();
 
-            response.Result=_dbContext.Crisis_Mgmt.ToList();
+            Leadership_LZResponse response = new Leadership_LZResponse();
+
+            response.Result = _dbContext.Leadership_LZ.ToList();
             response.Status = 200;
 
             return response;

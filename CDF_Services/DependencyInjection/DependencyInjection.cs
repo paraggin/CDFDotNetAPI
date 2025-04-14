@@ -42,7 +42,8 @@ namespace CDF_Services.DependencyInjection
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<Consfd, Consfd>();
 
-            services.AddScoped<IBusinessContinutyService,BusinessContinutyService> ();
+            services.AddScoped<ICrisis_mgmtService,Crisis_mgmtService> ();
+            services.AddScoped<ILeadership_LZService,Leadership_LZService>();
 
             #region Get PNP Account Data
          /*   services.AddScoped<IPnpAccountServices, PnpAccountService>();

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CDF_Services.IServices.LoadMatrix.BusinessContinuity
 {
-    public interface IBusinessContinutyService
+    public interface ICrisis_mgmtService
     {
         public CrisisMgmtResponse GetCrisisManagementData();
 

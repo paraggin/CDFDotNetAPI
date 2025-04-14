@@ -1,21 +1,19 @@
 ﻿using CDF_Services.IServices.LoadMatrix.BusinessContinuity;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using CDF_Services.IServices.IDocViewerService;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using CDF_Core.Entities.LoadMatrix.BusinessContinuity;
 
-namespace CDF_WebApi.Controllers.LoadMatrix
+namespace CDF_WebApi.Controllers.LoadMatrix.BusinessContinuity
 {
     [AllowAnonymous]
     [Route("api/[controller]")]
     [ApiController]
-    public class BusinessContinutyController : ControllerBase
-    {
-        private readonly IBusinessContinutyService _BusinessContinutyService;
 
-        public BusinessContinutyController(IBusinessContinutyService businessContinutyService)
+    public class LoadMatrix_Crisis_mgmtController : ControllerBase
+    {
+        private readonly ICrisis_mgmtService _BusinessContinutyService;
+
+        public LoadMatrix_Crisis_mgmtController(ICrisis_mgmtService businessContinutyService)
         {
             _BusinessContinutyService = businessContinutyService;
         }
