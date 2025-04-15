@@ -9,6 +9,7 @@ using CDF_Core.Models.Auth;
 using CDF_Core.Entities.Blob_Storage;
 using CDF_Core.Entities.Holiday_Calendar;
 using CDF_Core.Entities.LoadMatrix.BusinessContinuity;
+using CDF_Core.Entities.LoadMatrix.ComplySciInterface_UK;
 
 namespace CDF_Infrastructure.Persistence.Data
 {
@@ -23,6 +24,13 @@ namespace CDF_Infrastructure.Persistence.Data
 
         public DbSet<Crisis_mgmt> Crisis_Mgmt { get; set; }
         public DbSet<Leadership_LZ> Leadership_LZ { get; set; }
+
+        public DbSet<CSC_PER_DATA_LZ> CSC_PER_DATA_LZ { get; set; }
+        public DbSet<UK_PER_SMF_LZ> UK_PER_SMF_LZ { get; set; }
+        public DbSet<UK_PER_CFTY_LZ> UK_PER_CFTY_LZ { get; set; }
+        public DbSet<CSC_INST_GRP_LZ> CSC_INST_GRP_LZ { get; set; }
+
+
 
         /*      public DbSet<Profile> UserInfo { get; set; }
               public DbSet<RegisterType> RegisterType { get; set; }
